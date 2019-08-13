@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: springcloud/pipeline-base
+      - image: cloudpipelines/pipeline-base
     environment:
       JAVA_TOOL_OPTIONS: "-Xms64m -Xmx300m"
       GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xms64m -Xmx300m -XX:+HeapDumpOnOutOfMemoryError" -Dorg.gradle.daemon=false'
@@ -32,7 +32,7 @@ jobs:
           command: rm -rf ~/.m2/repository/org/springframework/cloud/contract && rm -rf ~/.m2/repository/com/example
       - run:
           name: "Running build"
-          command: ./mvnw -s .settings.xml clean org.jacoco:jacoco-maven-plugin:prepare-agent install -U -Pdocs,fast,integration,sonar -nsu --batch-mode -Dmaven.test.redirectTestOutputToFile=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+          command: ./mvnw -s .settings.xml clean install -U -Pdocs,fast,integration -nsu --batch-mode -Dmaven.test.redirectTestOutputToFile=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
       - run:
           name: "Aggregate test results"
           when: always
