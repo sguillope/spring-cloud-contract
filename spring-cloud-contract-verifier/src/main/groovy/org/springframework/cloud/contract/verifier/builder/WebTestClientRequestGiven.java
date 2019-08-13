@@ -31,9 +31,10 @@ class WebTestClientRequestGiven implements Given, WebTestClientAcceptor {
 	}
 
 	@Override
-	public MethodVisitor<Given> apply(SingleContractMetadata metadata) {
-		this.blockBuilder
-				.addIndented("WebTestClientRequestSpecification request = given()");
+	public MethodVisitor<Given> apply(SingleContractMetadata metadata,
+			SingleMethodBuilder methodBuilder) {
+		methodBuilder.variable("request", "WebTestClientRequestSpecification");
+		this.blockBuilder.appendWithSpace("= given()");
 		return this;
 	}
 

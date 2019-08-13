@@ -20,13 +20,6 @@ import static org.springframework.cloud.contract.verifier.util.NamesUtil.capital
 
 interface DefaultClassMetadata extends ClassMetaData, DefaultBaseClassProvider {
 
-	@Override
-	default ClassMetaData packageDefinition() {
-		blockBuilder().addLineWithEnding(
-				"package " + generatedClassMetaData().generatedClassData.classPackage);
-		return this;
-	}
-
 	GeneratedClassMetaData generatedClassMetaData();
 
 	BaseClassProvider baseClassProvider();

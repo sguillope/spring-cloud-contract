@@ -16,23 +16,10 @@
 
 package org.springframework.cloud.contract.verifier.builder;
 
-import org.springframework.cloud.contract.verifier.config.TestFramework;
-import org.springframework.cloud.contract.verifier.file.SingleContractMetadata;
+import java.util.List;
 
-class SpockJaxRsWhen extends JaxRsWhen {
+interface Fields extends Acceptor {
 
-	private final GeneratedClassMetaData metaData;
-
-	SpockJaxRsWhen(BlockBuilder blockBuilder,
-			GeneratedClassMetaData generatedClassMetaData) {
-		super(blockBuilder, generatedClassMetaData, SpockJaxRsBodyParser.INSTANCE);
-		this.metaData = generatedClassMetaData;
-	}
-
-	@Override
-	public boolean accept(SingleContractMetadata singleContractMetadata) {
-		return super.accept(singleContractMetadata) && this.metaData.configProperties
-				.getTestFramework() == TestFramework.SPOCK;
-	}
+	List<Field> fields();
 
 }

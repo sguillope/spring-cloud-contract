@@ -20,22 +20,15 @@ import org.springframework.cloud.contract.verifier.config.TestFramework;
 
 class JUnit5OrderClassAnnotation implements ClassAnnotation {
 
-	private final BlockBuilder blockBuilder;
-
 	private final GeneratedClassMetaData generatedClassMetaData;
 
-	private static final String[] ANNOTATIONS = {
-			"@FixMethodOrder(MethodSorters.NAME_ASCENDING)" };
-
-	JUnit5OrderClassAnnotation(BlockBuilder blockBuilder,
-			GeneratedClassMetaData generatedClassMetaData) {
-		this.blockBuilder = blockBuilder;
+	JUnit5OrderClassAnnotation(GeneratedClassMetaData generatedClassMetaData) {
 		this.generatedClassMetaData = generatedClassMetaData;
 	}
 
 	@Override
-	public ClassAnnotation call() {
-		// Arrays.stream(ANNOTATIONS).forEach(this.blockBuilder::addIndented);
+	public String annotation() {
+		// return "@FixMethodOrder(MethodSorters.NAME_ASCENDING)";
 		throw new UnsupportedOperationException(
 				"Not implemented yet in JUnit5 - https://github.com/junit-team/junit5/issues/48");
 	}

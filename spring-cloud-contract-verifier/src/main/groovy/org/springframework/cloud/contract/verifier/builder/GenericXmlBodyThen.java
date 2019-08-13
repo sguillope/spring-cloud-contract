@@ -36,14 +36,15 @@ class GenericXmlBodyThen implements Then {
 	}
 
 	@Override
-	public MethodVisitor<Then> apply(SingleContractMetadata metadata) {
+	public MethodVisitor<Then> apply(SingleContractMetadata metadata,
+			SingleMethodBuilder methodBuilder) {
 		BodyMatchers bodyMatchers = this.bodyParser.responseBodyMatchers(metadata);
 		Object convertedResponseBody = this.bodyParser.convertResponseBody(metadata);
 		XmlBodyVerificationBuilder xmlBodyVerificationBuilder = new XmlBodyVerificationBuilder(
 				metadata.getContract(), Optional.of(this.blockBuilder.getLineEnding()));
 		xmlBodyVerificationBuilder.addXmlResponseBodyCheck(this.blockBuilder,
-				convertedResponseBody, bodyMatchers, this.bodyParser.responseAsString(),
-				true);
+				methodBuilder, convertedResponseBody, bodyMatchers,
+				this.bodyParser.responseAsString(), true);
 		return this;
 	}
 

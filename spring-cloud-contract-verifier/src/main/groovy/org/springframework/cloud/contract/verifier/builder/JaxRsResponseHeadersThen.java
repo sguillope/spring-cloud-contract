@@ -30,19 +30,17 @@ class JaxRsResponseHeadersThen implements Then {
 
 	private final BlockBuilder blockBuilder;
 
-	private final GeneratedClassMetaData generatedClassMetaData;
-
 	private final ComparisonBuilder comparisonBuilder;
 
-	JaxRsResponseHeadersThen(BlockBuilder blockBuilder, GeneratedClassMetaData metaData,
+	JaxRsResponseHeadersThen(BlockBuilder blockBuilder,
 			ComparisonBuilder comparisonBuilder) {
 		this.blockBuilder = blockBuilder;
-		this.generatedClassMetaData = metaData;
 		this.comparisonBuilder = comparisonBuilder;
 	}
 
 	@Override
-	public MethodVisitor<Then> apply(SingleContractMetadata metadata) {
+	public MethodVisitor<Then> apply(SingleContractMetadata metadata,
+			SingleMethodBuilder methodBuilder) {
 		validateResponseHeadersBlock(metadata);
 		return this;
 	}

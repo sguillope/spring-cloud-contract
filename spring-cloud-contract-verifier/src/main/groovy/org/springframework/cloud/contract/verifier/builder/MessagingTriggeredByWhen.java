@@ -27,7 +27,8 @@ class MessagingTriggeredByWhen implements When {
 	}
 
 	@Override
-	public MethodVisitor<When> apply(SingleContractMetadata metadata) {
+	public MethodVisitor<When> apply(SingleContractMetadata metadata,
+			SingleMethodBuilder methodBuilder) {
 		this.blockBuilder.addIndented(
 				metadata.getContract().getInput().getTriggeredBy().getExecutionCommand())
 				.addEndingIfNotPresent();

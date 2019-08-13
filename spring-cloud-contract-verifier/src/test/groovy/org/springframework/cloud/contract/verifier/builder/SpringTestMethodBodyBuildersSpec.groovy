@@ -222,17 +222,16 @@ class SpringTestMethodBodyBuildersSpec extends Specification implements WireMock
 	private String singleTestGenerator(Contract contractDsl) {
 		return new JavaTestGenerator() {
 			@Override
-			ClassBodyBuilder classBodyBuilder(BlockBuilder builder, GeneratedClassMetaData metaData, SingleMethodBuilder methodBuilder) {
-				return super.classBodyBuilder(builder, metaData, methodBuilder).field(new Field() {
+			List<Fields> customFields(BlockBuilder builder, GeneratedClassMetaData metaData) {
+				return Collections.singletonList(new Fields() {
 					@Override
 					boolean accept() {
 						return metaData.configProperties.testMode == TestMode.JAXRSCLIENT
 					}
 
 					@Override
-					Field call() {
-						builder.addLine("WebTarget webTarget")
-						return this
+					List<Field> fields() {
+						return Collections.singletonList(new Field("WebTarget", "webTarget"))
 					}
 				})
 			}

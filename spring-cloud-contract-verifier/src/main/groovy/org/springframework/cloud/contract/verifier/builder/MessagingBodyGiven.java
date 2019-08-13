@@ -37,7 +37,8 @@ class MessagingBodyGiven implements Given, MethodVisitor<Given> {
 	}
 
 	@Override
-	public MethodVisitor<Given> apply(SingleContractMetadata metadata) {
+	public MethodVisitor<Given> apply(SingleContractMetadata metadata,
+			SingleMethodBuilder methodBuilder) {
 		appendBodyGiven(metadata);
 		return this;
 	}

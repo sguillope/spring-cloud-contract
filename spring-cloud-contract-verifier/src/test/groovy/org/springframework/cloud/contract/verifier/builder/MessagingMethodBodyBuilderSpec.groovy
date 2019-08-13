@@ -53,17 +53,16 @@ class MessagingMethodBodyBuilderSpec extends Specification {
 	private String singleTestGenerator(Contract contractDsl) {
 		return new JavaTestGenerator() {
 			@Override
-			ClassBodyBuilder classBodyBuilder(BlockBuilder builder, GeneratedClassMetaData metaData, SingleMethodBuilder methodBuilder) {
-				return super.classBodyBuilder(builder, metaData, methodBuilder).field(new Field() {
+			List<Fields> customFields(BlockBuilder builder, GeneratedClassMetaData metaData) {
+				return Collections.singletonList(new Fields() {
 					@Override
 					boolean accept() {
 						return metaData.configProperties.testMode == TestMode.JAXRSCLIENT
 					}
 
 					@Override
-					Field call() {
-						builder.addLine("WebTarget webTarget")
-						return this
+					List<Field> fields() {
+						return Collections.singletonList(new Field("WebTarget", "webTarget"))
 					}
 				})
 			}
@@ -118,8 +117,10 @@ import static org.springframework.cloud.contract.verifier.util.ContractVerifierU
 
 @SuppressWarnings("rawtypes")
 class FooSpec extends Specification {
-\t@Inject ContractVerifierMessaging contractVerifierMessaging
-\t@Inject ContractVerifierObjectMapper contractVerifierObjectMapper
+\t@Inject
+\tContractVerifierMessaging contractVerifierMessaging
+\t@Inject
+\tContractVerifierObjectMapper contractVerifierObjectMapper
 
 \tdef validate_foo() throws Exception {
 \t\twhen:
@@ -191,8 +192,10 @@ import static org.springframework.cloud.contract.verifier.util.ContractVerifierU
 
 @SuppressWarnings("rawtypes")
 public class FooTest {
-\t@Inject ContractVerifierMessaging contractVerifierMessaging;
-\t@Inject ContractVerifierObjectMapper contractVerifierObjectMapper;
+\t@Inject
+\tContractVerifierMessaging contractVerifierMessaging;
+\t@Inject
+\tContractVerifierObjectMapper contractVerifierObjectMapper;
 
 \t@Test
 \tpublic void validate_foo() throws Exception {
@@ -272,8 +275,10 @@ import static org.springframework.cloud.contract.verifier.util.ContractVerifierU
 
 @SuppressWarnings("rawtypes")
 class FooSpec extends Specification {
-\t@Inject ContractVerifierMessaging contractVerifierMessaging
-\t@Inject ContractVerifierObjectMapper contractVerifierObjectMapper
+\t@Inject
+\tContractVerifierMessaging contractVerifierMessaging
+\t@Inject
+\tContractVerifierObjectMapper contractVerifierObjectMapper
 
 \tdef validate_foo() throws Exception {
 \t\tgiven:
@@ -357,8 +362,10 @@ import static org.springframework.cloud.contract.verifier.util.ContractVerifierU
 
 @SuppressWarnings("rawtypes")
 public class FooTest {
-\t@Inject ContractVerifierMessaging contractVerifierMessaging;
-\t@Inject ContractVerifierObjectMapper contractVerifierObjectMapper;
+\t@Inject
+\tContractVerifierMessaging contractVerifierMessaging;
+\t@Inject
+\tContractVerifierObjectMapper contractVerifierObjectMapper;
 
 \t@Test
 \tpublic void validate_foo() throws Exception {
@@ -435,8 +442,10 @@ import static org.springframework.cloud.contract.verifier.util.ContractVerifierU
 
 @SuppressWarnings("rawtypes")
 class FooSpec extends Specification {
-\t@Inject ContractVerifierMessaging contractVerifierMessaging
-\t@Inject ContractVerifierObjectMapper contractVerifierObjectMapper
+\t@Inject
+\tContractVerifierMessaging contractVerifierMessaging
+\t@Inject
+\tContractVerifierObjectMapper contractVerifierObjectMapper
 
 \tdef validate_foo() throws Exception {
 \t\tgiven:
@@ -503,8 +512,10 @@ import static org.springframework.cloud.contract.verifier.util.ContractVerifierU
 
 @SuppressWarnings("rawtypes")
 public class FooTest {
-\t@Inject ContractVerifierMessaging contractVerifierMessaging;
-\t@Inject ContractVerifierObjectMapper contractVerifierObjectMapper;
+\t@Inject
+\tContractVerifierMessaging contractVerifierMessaging;
+\t@Inject
+\tContractVerifierObjectMapper contractVerifierObjectMapper;
 
 \t@Test
 \tpublic void validate_foo() throws Exception {
@@ -574,8 +585,10 @@ import static org.springframework.cloud.contract.verifier.util.ContractVerifierU
 
 @SuppressWarnings("rawtypes")
 public class FooTest {
-\t@Inject ContractVerifierMessaging contractVerifierMessaging;
-\t@Inject ContractVerifierObjectMapper contractVerifierObjectMapper;
+\t@Inject
+\tContractVerifierMessaging contractVerifierMessaging;
+\t@Inject
+\tContractVerifierObjectMapper contractVerifierObjectMapper;
 
 \t@Test
 \tpublic void validate_foo() throws Exception {
@@ -648,8 +661,10 @@ import static org.springframework.cloud.contract.verifier.util.ContractVerifierU
 
 @SuppressWarnings("rawtypes")
 class FooSpec extends Specification {
-\t@Inject ContractVerifierMessaging contractVerifierMessaging
-\t@Inject ContractVerifierObjectMapper contractVerifierObjectMapper
+\t@Inject
+\tContractVerifierMessaging contractVerifierMessaging
+\t@Inject
+\tContractVerifierObjectMapper contractVerifierObjectMapper
 
 \tdef validate_foo() throws Exception {
 \t\tgiven:
@@ -731,8 +746,10 @@ import static org.springframework.cloud.contract.verifier.util.ContractVerifierU
 
 @SuppressWarnings("rawtypes")
 public class FooTest {
-\t@Inject ContractVerifierMessaging contractVerifierMessaging;
-\t@Inject ContractVerifierObjectMapper contractVerifierObjectMapper;
+\t@Inject
+\tContractVerifierMessaging contractVerifierMessaging;
+\t@Inject
+\tContractVerifierObjectMapper contractVerifierObjectMapper;
 
 \t@Test
 \tpublic void validate_foo() throws Exception {
@@ -808,8 +825,10 @@ import static org.springframework.cloud.contract.verifier.util.ContractVerifierU
 
 @SuppressWarnings("rawtypes")
 public class FooTest {
-\t@Inject ContractVerifierMessaging contractVerifierMessaging;
-\t@Inject ContractVerifierObjectMapper contractVerifierObjectMapper;
+\t@Inject
+\tContractVerifierMessaging contractVerifierMessaging;
+\t@Inject
+\tContractVerifierObjectMapper contractVerifierObjectMapper;
 
 \t@Test
 \tpublic void validate_foo() throws Exception {
@@ -1016,8 +1035,10 @@ import static org.springframework.cloud.contract.verifier.util.ContractVerifierU
 
 @SuppressWarnings("rawtypes")
 class FooSpec extends Specification {
-\t@Inject ContractVerifierMessaging contractVerifierMessaging
-\t@Inject ContractVerifierObjectMapper contractVerifierObjectMapper
+\t@Inject
+\tContractVerifierMessaging contractVerifierMessaging
+\t@Inject
+\tContractVerifierObjectMapper contractVerifierObjectMapper
 
 \tdef validate_foo() throws Exception {
 \t\twhen:
@@ -1087,8 +1108,10 @@ import static org.springframework.cloud.contract.verifier.util.ContractVerifierU
 
 @SuppressWarnings("rawtypes")
 class FooSpec extends Specification {
-\t@Inject ContractVerifierMessaging contractVerifierMessaging
-\t@Inject ContractVerifierObjectMapper contractVerifierObjectMapper
+\t@Inject
+\tContractVerifierMessaging contractVerifierMessaging
+\t@Inject
+\tContractVerifierObjectMapper contractVerifierObjectMapper
 
 \tdef validate_foo() throws Exception {
 \t\twhen:
@@ -1158,8 +1181,10 @@ import static org.springframework.cloud.contract.verifier.util.ContractVerifierU
 
 @SuppressWarnings("rawtypes")
 class FooSpec extends Specification {
-\t@Inject ContractVerifierMessaging contractVerifierMessaging
-\t@Inject ContractVerifierObjectMapper contractVerifierObjectMapper
+\t@Inject
+\tContractVerifierMessaging contractVerifierMessaging
+\t@Inject
+\tContractVerifierObjectMapper contractVerifierObjectMapper
 
 \tdef validate_foo() throws Exception {
 \t\twhen:
@@ -1231,8 +1256,10 @@ import static org.springframework.cloud.contract.verifier.util.ContractVerifierU
 
 @SuppressWarnings("rawtypes")
 public class FooTest {
-\t@Inject ContractVerifierMessaging contractVerifierMessaging;
-\t@Inject ContractVerifierObjectMapper contractVerifierObjectMapper;
+\t@Inject
+\tContractVerifierMessaging contractVerifierMessaging;
+\t@Inject
+\tContractVerifierObjectMapper contractVerifierObjectMapper;
 
 \t@Test
 \tpublic void validate_foo() throws Exception {
@@ -1309,8 +1336,10 @@ import static org.springframework.cloud.contract.verifier.util.ContractVerifierU
 
 @SuppressWarnings("rawtypes")
 class FooSpec extends Specification {
-\t@Inject ContractVerifierMessaging contractVerifierMessaging
-\t@Inject ContractVerifierObjectMapper contractVerifierObjectMapper
+\t@Inject
+\tContractVerifierMessaging contractVerifierMessaging
+\t@Inject
+\tContractVerifierObjectMapper contractVerifierObjectMapper
 
 \tdef validate_foo() throws Exception {
 \t\twhen:
@@ -1351,8 +1380,10 @@ import static org.springframework.cloud.contract.verifier.util.ContractVerifierU
 
 @SuppressWarnings("rawtypes")
 public class FooTest {
-\t@Inject ContractVerifierMessaging contractVerifierMessaging;
-\t@Inject ContractVerifierObjectMapper contractVerifierObjectMapper;
+\t@Inject
+\tContractVerifierMessaging contractVerifierMessaging;
+\t@Inject
+\tContractVerifierObjectMapper contractVerifierObjectMapper;
 
 \t@Test
 \tpublic void validate_foo() throws Exception {
@@ -1422,8 +1453,10 @@ import static org.springframework.cloud.contract.verifier.util.ContractVerifierU
 
 @SuppressWarnings("rawtypes")
 class FooSpec extends Specification {
-\t@Inject ContractVerifierMessaging contractVerifierMessaging
-\t@Inject ContractVerifierObjectMapper contractVerifierObjectMapper
+\t@Inject
+\tContractVerifierMessaging contractVerifierMessaging
+\t@Inject
+\tContractVerifierObjectMapper contractVerifierObjectMapper
 
 \tdef validate_foo() throws Exception {
 \t\tgiven:
@@ -1467,8 +1500,10 @@ import static org.springframework.cloud.contract.verifier.util.ContractVerifierU
 
 @SuppressWarnings("rawtypes")
 public class FooTest {
-\t@Inject ContractVerifierMessaging contractVerifierMessaging;
-\t@Inject ContractVerifierObjectMapper contractVerifierObjectMapper;
+\t@Inject
+\tContractVerifierMessaging contractVerifierMessaging;
+\t@Inject
+\tContractVerifierObjectMapper contractVerifierObjectMapper;
 
 \t@Test
 \tpublic void validate_foo() throws Exception {
@@ -1558,8 +1593,10 @@ import static org.springframework.cloud.contract.verifier.util.ContractVerifierU
 
 @SuppressWarnings("rawtypes")
 class FooSpec extends Specification {
-\t@Inject ContractVerifierMessaging contractVerifierMessaging
-\t@Inject ContractVerifierObjectMapper contractVerifierObjectMapper
+\t@Inject
+\tContractVerifierMessaging contractVerifierMessaging
+\t@Inject
+\tContractVerifierObjectMapper contractVerifierObjectMapper
 
 \tdef validate_foo() throws Exception {
 \t\twhen:
@@ -1613,8 +1650,10 @@ import static org.springframework.cloud.contract.verifier.util.ContractVerifierU
 
 @SuppressWarnings("rawtypes")
 public class FooTest {
-\t@Inject ContractVerifierMessaging contractVerifierMessaging;
-\t@Inject ContractVerifierObjectMapper contractVerifierObjectMapper;
+\t@Inject
+\tContractVerifierMessaging contractVerifierMessaging;
+\t@Inject
+\tContractVerifierObjectMapper contractVerifierObjectMapper;
 
 \t@Test
 \tpublic void validate_foo() throws Exception {

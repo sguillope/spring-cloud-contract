@@ -27,19 +27,17 @@ class GenericBinaryBodyThen implements Then {
 
 	private final BodyParser bodyParser;
 
-	private final ComparisonBuilder comparisonBuilder;
-
 	GenericBinaryBodyThen(BlockBuilder blockBuilder, GeneratedClassMetaData metaData,
 			BodyParser bodyParser, ComparisonBuilder comparisonBuilder) {
 		this.blockBuilder = blockBuilder;
-		this.comparisonBuilder = comparisonBuilder;
 		this.bodyAssertionLineCreator = new BodyAssertionLineCreator(blockBuilder,
-				metaData, bodyParser.byteArrayString(), this.comparisonBuilder);
+				metaData, bodyParser.byteArrayString(), comparisonBuilder);
 		this.bodyParser = bodyParser;
 	}
 
 	@Override
-	public MethodVisitor<Then> apply(SingleContractMetadata metadata) {
+	public MethodVisitor<Then> apply(SingleContractMetadata metadata,
+			SingleMethodBuilder methodBuilder) {
 		Object responseBody = this.bodyParser.responseBody(metadata).getServerValue();
 		byteResponseBodyCheck(metadata, (FromFileProperty) responseBody);
 		return this;

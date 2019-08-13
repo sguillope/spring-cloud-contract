@@ -29,38 +29,33 @@ class GenericHttpBodyThen implements Then, BodyMethodVisitor {
 
 	private final BlockBuilder blockBuilder;
 
-	private final BodyParser bodyParser;
-
 	private final TemplateProcessor templateProcessor;
-
-	private final ComparisonBuilder comparisonBuilder;
 
 	private final List<Then> thens = new LinkedList<>();
 
 	GenericHttpBodyThen(BlockBuilder blockBuilder, GeneratedClassMetaData metaData,
 			BodyParser bodyParser, ComparisonBuilder comparisonBuilder) {
 		this.blockBuilder = blockBuilder;
-		this.bodyParser = bodyParser;
-		this.comparisonBuilder = comparisonBuilder;
 		this.templateProcessor = new HandlebarsTemplateProcessor();
 		this.thens.addAll(Arrays.asList(
-				new GenericBinaryBodyThen(blockBuilder, metaData, this.bodyParser,
+				new GenericBinaryBodyThen(blockBuilder, metaData, bodyParser,
 						comparisonBuilder),
-				new GenericTextBodyThen(blockBuilder, metaData, this.bodyParser,
-						this.comparisonBuilder),
-				new GenericJsonBodyThen(blockBuilder, metaData, this.bodyParser,
-						this.comparisonBuilder),
-				new GenericXmlBodyThen(blockBuilder, this.bodyParser)));
+				new GenericTextBodyThen(blockBuilder, metaData, bodyParser,
+						comparisonBuilder),
+				new GenericJsonBodyThen(blockBuilder, metaData, bodyParser,
+						comparisonBuilder),
+				new GenericXmlBodyThen(blockBuilder, bodyParser)));
 	}
 
 	@Override
-	public MethodVisitor<Then> apply(SingleContractMetadata metadata) {
+	public MethodVisitor<Then> apply(SingleContractMetadata metadata,
+			SingleMethodBuilder methodBuilder) {
 		endBodyBlock(this.blockBuilder);
 		this.blockBuilder.addEmptyLine();
 		startBodyBlock(this.blockBuilder, "and:");
 		Request request = metadata.getContract().getRequest();
 		this.thens.stream().filter(then -> then.accept(metadata))
-				.forEach(then -> then.apply(metadata));
+				.forEach(then -> then.apply(metadata, methodBuilder));
 		String newBody = this.templateProcessor.transform(request,
 				this.blockBuilder.toString());
 		this.blockBuilder.updateContents(newBody);

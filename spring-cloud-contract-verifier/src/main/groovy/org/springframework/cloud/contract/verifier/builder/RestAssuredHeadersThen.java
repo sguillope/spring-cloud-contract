@@ -39,7 +39,8 @@ class RestAssuredHeadersThen implements Then, MockMvcAcceptor {
 	}
 
 	@Override
-	public MethodVisitor<Then> apply(SingleContractMetadata metadata) {
+	public MethodVisitor<Then> apply(SingleContractMetadata metadata,
+			SingleMethodBuilder methodBuilder) {
 		Response response = metadata.getContract().getResponse();
 		Headers headers = response.getHeaders();
 		Iterator<Header> iterator = headers.getEntries().iterator();

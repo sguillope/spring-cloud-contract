@@ -26,23 +26,20 @@ class MessagingWhen implements When, BodyMethodVisitor {
 
 	private final BlockBuilder blockBuilder;
 
-	private final GeneratedClassMetaData generatedClassMetaData;
-
 	private final List<When> whens = new LinkedList<>();
 
-	MessagingWhen(BlockBuilder blockBuilder,
-			GeneratedClassMetaData generatedClassMetaData) {
+	MessagingWhen(BlockBuilder blockBuilder) {
 		this.blockBuilder = blockBuilder;
-		this.generatedClassMetaData = generatedClassMetaData;
 		this.whens.addAll(Arrays.asList(new MessagingTriggeredByWhen(this.blockBuilder),
 				new MessagingBodyWhen(this.blockBuilder),
 				new MessagingAssertThatWhen(this.blockBuilder)));
 	}
 
 	@Override
-	public MethodVisitor<When> apply(SingleContractMetadata singleContractMetadata) {
+	public MethodVisitor<When> apply(SingleContractMetadata singleContractMetadata,
+			SingleMethodBuilder methodBuilder) {
 		startBodyBlock(this.blockBuilder, "when:");
-		bodyBlock(this.blockBuilder, this.whens, singleContractMetadata);
+		bodyBlock(this.blockBuilder, this.whens, singleContractMetadata, methodBuilder);
 		this.blockBuilder.addEmptyLine();
 		return this;
 	}

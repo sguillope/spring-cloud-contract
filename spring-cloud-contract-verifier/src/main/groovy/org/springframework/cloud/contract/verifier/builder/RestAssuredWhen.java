@@ -51,20 +51,23 @@ class RestAssuredWhen implements When, BodyMethodVisitor {
 	}
 
 	@Override
-	public MethodVisitor<When> apply(SingleContractMetadata singleContractMetadata) {
+	public MethodVisitor<When> apply(SingleContractMetadata singleContractMetadata,
+			SingleMethodBuilder methodBuilder) {
 		startBodyBlock(this.blockBuilder, "when:");
-		addResponseWhenLine(singleContractMetadata);
-		indentedBodyBlock(this.blockBuilder, this.whens, singleContractMetadata);
+		addResponseWhenLine(singleContractMetadata, methodBuilder);
+		indentedBodyBlock(this.blockBuilder, this.whens, singleContractMetadata,
+				methodBuilder);
 		this.blockBuilder.addEmptyLine();
 		return this;
 	}
 
-	private void addResponseWhenLine(SingleContractMetadata singleContractMetadata) {
+	private void addResponseWhenLine(SingleContractMetadata singleContractMetadata,
+			SingleMethodBuilder methodBuilder) {
 		this.responseWhens.stream().filter(when -> when.accept(singleContractMetadata))
 				.findFirst()
 				.orElseThrow(() -> new IllegalStateException(
 						"No matching request building When implementation for Rest Assured"))
-				.apply(singleContractMetadata);
+				.apply(singleContractMetadata, methodBuilder);
 	}
 
 	@Override

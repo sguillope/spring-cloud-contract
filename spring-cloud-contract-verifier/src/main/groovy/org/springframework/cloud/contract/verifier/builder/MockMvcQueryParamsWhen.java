@@ -41,7 +41,8 @@ class MockMvcQueryParamsWhen implements When, MockMvcAcceptor, QueryParamsResolv
 	}
 
 	@Override
-	public MethodVisitor<When> apply(SingleContractMetadata metadata) {
+	public MethodVisitor<When> apply(SingleContractMetadata metadata,
+			SingleMethodBuilder methodBuilder) {
 		Request request = metadata.getContract().getRequest();
 		Url url = getUrl(request);
 		addQueryParameters(url);

@@ -17,12 +17,11 @@
 package org.springframework.cloud.contract.verifier.builder;
 
 import java.util.Arrays;
+import java.util.List;
 
 import org.springframework.cloud.contract.verifier.file.SingleContractMetadata;
 
 class XmlImports implements Imports {
-
-	private final BlockBuilder blockBuilder;
 
 	private final GeneratedClassMetaData generatedClassMetaData;
 
@@ -30,16 +29,13 @@ class XmlImports implements Imports {
 			"javax.xml.parsers.DocumentBuilderFactory", "org.w3c.dom.Document",
 			"org.xml.sax.InputSource", "java.io.StringReader" };
 
-	XmlImports(BlockBuilder blockBuilder, GeneratedClassMetaData generatedClassMetaData) {
-		this.blockBuilder = blockBuilder;
+	XmlImports(GeneratedClassMetaData generatedClassMetaData) {
 		this.generatedClassMetaData = generatedClassMetaData;
 	}
 
 	@Override
-	public Imports call() {
-		Arrays.stream(IMPORTS)
-				.forEach(s -> this.blockBuilder.addLineWithEnding("import " + s));
-		return this;
+	public List<String> fqns() {
+		return Arrays.asList(IMPORTS);
 	}
 
 	@Override

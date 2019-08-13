@@ -16,79 +16,20 @@
 
 package org.springframework.cloud.contract.verifier.builder;
 
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Builds the body of the class. Sets fields, methods.
  *
  * @author Olga Maciaszek-Sharma
  * @author Marcin Grzejszczak
+ * @author Tim Ysewyn
  * @since 2.2.0
  */
-class ClassBodyBuilder {
+interface ClassBodyBuilder {
 
-	private List<Field> fields = new LinkedList<>();
+	ClassBodyBuilder setupFields(List<Fields> fields);
 
-	private SingleMethodBuilder methodBuilder;
-
-	final BlockBuilder blockBuilder;
-
-	final GeneratedClassMetaData generatedClassMetaData;
-
-	private ClassBodyBuilder(BlockBuilder blockBuilder,
-			GeneratedClassMetaData generatedClassMetaData) {
-		this.blockBuilder = blockBuilder;
-		this.generatedClassMetaData = generatedClassMetaData;
-	}
-
-	static ClassBodyBuilder builder(BlockBuilder blockBuilder,
-			GeneratedClassMetaData generatedClassMetaData) {
-		return new ClassBodyBuilder(blockBuilder, generatedClassMetaData);
-	}
-
-	FieldBuilder field() {
-		return new FieldBuilder(this);
-	}
-
-	ClassBodyBuilder field(Field field) {
-		this.fields.add(field);
-		return this;
-	}
-
-	ClassBodyBuilder methodBuilder(SingleMethodBuilder methodBuilder) {
-		this.methodBuilder = methodBuilder;
-		return this;
-	}
-
-	/**
-	 * Mutates the {@link BlockBuilder} to generate methods and fields.
-	 * @return block builder with contents of built methods
-	 */
-	BlockBuilder build() {
-		this.blockBuilder.inBraces(() -> {
-			// @Rule ...
-			visit(this.fields);
-			// new line if fields added
-			this.methodBuilder.build();
-		});
-		return this.blockBuilder;
-	}
-
-	void visit(List<? extends Visitor> list) {
-		List<? extends Visitor> visitors = list.stream().filter(Acceptor::accept)
-				.collect(Collectors.toList());
-		Iterator<? extends Visitor> iterator = visitors.iterator();
-		while (iterator.hasNext()) {
-			Visitor visitor = iterator.next();
-			visitor.call();
-			this.blockBuilder.addEndingIfNotPresent();
-			if (iterator.hasNext()) {
-				this.blockBuilder.addEmptyLine();
-			}
-		}
-	}
+	BlockBuilder build();
 
 }

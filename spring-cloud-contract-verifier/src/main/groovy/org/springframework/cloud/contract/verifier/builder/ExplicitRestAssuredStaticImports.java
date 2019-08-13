@@ -17,12 +17,11 @@
 package org.springframework.cloud.contract.verifier.builder;
 
 import java.util.Arrays;
+import java.util.List;
 
 import org.springframework.cloud.contract.verifier.config.TestMode;
 
-class ExplicitRestAssuredStaticImports implements Imports, RestAssuredVerifier {
-
-	private final BlockBuilder blockBuilder;
+class ExplicitRestAssuredStaticImports implements StaticImports, RestAssuredVerifier {
 
 	private final GeneratedClassMetaData generatedClassMetaData;
 
@@ -32,18 +31,14 @@ class ExplicitRestAssuredStaticImports implements Imports, RestAssuredVerifier {
 	private static final String[] REST_ASSURED_3_IMPORTS = {
 			"io.restassured.RestAssured.*" };
 
-	ExplicitRestAssuredStaticImports(BlockBuilder blockBuilder,
-			GeneratedClassMetaData generatedClassMetaData) {
-		this.blockBuilder = blockBuilder;
+	ExplicitRestAssuredStaticImports(GeneratedClassMetaData generatedClassMetaData) {
 		this.generatedClassMetaData = generatedClassMetaData;
 	}
 
 	@Override
-	public Imports call() {
-		Arrays.stream(
-				isRestAssured2Present() ? REST_ASSURED_2_IMPORTS : REST_ASSURED_3_IMPORTS)
-				.forEach(s -> this.blockBuilder.addLineWithEnding("import static " + s));
-		return this;
+	public List<String> fqns() {
+		return Arrays.asList(isRestAssured2Present() ? REST_ASSURED_2_IMPORTS
+				: REST_ASSURED_3_IMPORTS);
 	}
 
 	@Override

@@ -16,6 +16,17 @@
 
 package org.springframework.cloud.contract.verifier.builder;
 
-interface Imports extends Visitor<Imports> {
+import java.util.List;
+import java.util.function.Function;
+
+interface Imports extends Acceptor, Function<ClassBuilder, ClassBuilder> {
+
+	List<String> fqns();
+
+	@Override
+	default ClassBuilder apply(ClassBuilder classBuilder) {
+		fqns().forEach(classBuilder::writeImport);
+		return classBuilder;
+	}
 
 }

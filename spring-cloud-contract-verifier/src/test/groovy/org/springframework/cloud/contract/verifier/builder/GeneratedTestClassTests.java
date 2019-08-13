@@ -126,12 +126,14 @@ public class GeneratedTestClassTests {
 		configProperties.setBaseClassForTests("BazBar");
 
 		// when
-		String builtClass = generator.buildClass(configProperties, contracts,
-				includedDirectoryRelativePath, new SingleTestGenerator.GeneratedClassData(
-						convertedClassName, packageName, classPath));
+		GeneratedTestClass builtClass = generator.generateClass(configProperties,
+				contracts, includedDirectoryRelativePath,
+				new SingleTestGenerator.GeneratedClassData(convertedClassName,
+						packageName, classPath));
 
 		// then
-		BDDAssertions.then(builtClass).isEqualTo(this.expectedTest);
+		BDDAssertions.then(builtClass.fileName()).isEqualTo("FooBarTest.java");
+		BDDAssertions.then(builtClass.content()).isEqualTo(this.expectedTest);
 	}
 
 }

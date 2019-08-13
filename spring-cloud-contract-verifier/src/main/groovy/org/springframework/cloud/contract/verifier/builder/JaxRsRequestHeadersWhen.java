@@ -37,7 +37,8 @@ class JaxRsRequestHeadersWhen implements When {
 	}
 
 	@Override
-	public MethodVisitor<When> apply(SingleContractMetadata metadata) {
+	public MethodVisitor<When> apply(SingleContractMetadata metadata,
+			SingleMethodBuilder methodBuilder) {
 		appendHeaders(metadata.getContract().getRequest());
 		return this;
 	}

@@ -26,10 +26,6 @@ class MessagingBodyThen implements Then, BodyMethodVisitor {
 
 	private final BlockBuilder blockBuilder;
 
-	private final GeneratedClassMetaData generatedClassMetaData;
-
-	private final ComparisonBuilder comparisonBuilder;
-
 	private final List<Then> thens = new LinkedList<>();
 
 	private final BodyParser bodyParser;
@@ -37,25 +33,24 @@ class MessagingBodyThen implements Then, BodyMethodVisitor {
 	MessagingBodyThen(BlockBuilder blockBuilder, GeneratedClassMetaData metaData,
 			ComparisonBuilder comparisonBuilder) {
 		this.blockBuilder = blockBuilder;
-		this.generatedClassMetaData = metaData;
-		this.comparisonBuilder = comparisonBuilder;
 		this.bodyParser = comparisonBuilder.bodyParser();
 		this.thens.addAll(Arrays.asList(
 				new GenericBinaryBodyThen(blockBuilder, metaData, this.bodyParser,
-						this.comparisonBuilder),
+						comparisonBuilder),
 				new GenericTextBodyThen(blockBuilder, metaData, this.bodyParser,
-						this.comparisonBuilder),
+						comparisonBuilder),
 				new GenericJsonBodyThen(blockBuilder, metaData, this.bodyParser,
-						this.comparisonBuilder),
+						comparisonBuilder),
 				new GenericXmlBodyThen(blockBuilder, this.bodyParser)));
 	}
 
 	@Override
-	public MethodVisitor<Then> apply(SingleContractMetadata singleContractMetadata) {
+	public MethodVisitor<Then> apply(SingleContractMetadata singleContractMetadata,
+			SingleMethodBuilder methodBuilder) {
 		endBodyBlock(this.blockBuilder);
 		startBodyBlock(this.blockBuilder, "and:");
 		this.thens.stream().filter(then -> then.accept(singleContractMetadata))
-				.forEach(then -> then.apply(singleContractMetadata));
+				.forEach(then -> then.apply(singleContractMetadata, methodBuilder));
 		return this;
 	}
 

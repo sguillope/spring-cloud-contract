@@ -41,11 +41,7 @@ class JavaClassMetaData implements ClassMetaData, DefaultClassMetadata {
 
 	@Override
 	public ClassMetaData suffix() {
-		String suffix = StringUtils.hasText(
-				this.generatedClassMetaData.configProperties.getNameSuffixForTests())
-						? this.generatedClassMetaData.configProperties
-								.getNameSuffixForTests()
-						: "Test";
+		String suffix = this.getClassNameSuffix();
 		if (!this.blockBuilder.endsWith(suffix)) {
 			this.blockBuilder.addAtTheEnd(suffix);
 		}
@@ -62,6 +58,17 @@ class JavaClassMetaData implements ClassMetaData, DefaultClassMetadata {
 	public ClassMetaData setupLabelPrefix() {
 		this.blockBuilder.setupLabelPrefix("// ");
 		return this;
+	}
+
+	@Override
+	public ClassBuilder classDefinition() {
+		return JavaClassBuilder.builder(this);
+	}
+
+	@Override
+	public ClassBodyBuilder classBody() {
+		return JavaClassBodyBuilder.builder(this.blockBuilder,
+				this.generatedClassMetaData);
 	}
 
 	@Override
@@ -100,6 +107,20 @@ class JavaClassMetaData implements ClassMetaData, DefaultClassMetadata {
 						.getTestFramework() == TestFramework.JUNIT5
 				|| this.generatedClassMetaData.configProperties
 						.getTestFramework() == TestFramework.TESTNG;
+	}
+
+	@Override
+	public String getClassNameSuffix() {
+		return StringUtils.hasText(
+				this.generatedClassMetaData.configProperties.getNameSuffixForTests())
+						? this.generatedClassMetaData.configProperties
+								.getNameSuffixForTests()
+						: "Test";
+	}
+
+	@Override
+	public String getFileExtension() {
+		return ".java";
 	}
 
 }

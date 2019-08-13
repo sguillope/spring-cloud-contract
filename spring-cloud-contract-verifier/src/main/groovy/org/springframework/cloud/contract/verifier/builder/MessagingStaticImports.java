@@ -17,12 +17,11 @@
 package org.springframework.cloud.contract.verifier.builder;
 
 import java.util.Arrays;
+import java.util.List;
 
 import org.springframework.cloud.contract.verifier.file.SingleContractMetadata;
 
-class MessagingStaticImports implements Imports {
-
-	private final BlockBuilder blockBuilder;
+class MessagingStaticImports implements StaticImports {
 
 	private final GeneratedClassMetaData generatedClassMetaData;
 
@@ -30,17 +29,13 @@ class MessagingStaticImports implements Imports {
 			"org.springframework.cloud.contract.verifier.messaging.util.ContractVerifierMessagingUtil.headers",
 			"org.springframework.cloud.contract.verifier.util.ContractVerifierUtil.fileToBytes" };
 
-	MessagingStaticImports(BlockBuilder blockBuilder,
-			GeneratedClassMetaData generatedClassMetaData) {
-		this.blockBuilder = blockBuilder;
+	MessagingStaticImports(GeneratedClassMetaData generatedClassMetaData) {
 		this.generatedClassMetaData = generatedClassMetaData;
 	}
 
 	@Override
-	public Imports call() {
-		Arrays.stream(IMPORTS)
-				.forEach(s -> this.blockBuilder.addLineWithEnding("import static " + s));
-		return this;
+	public List<String> fqns() {
+		return Arrays.asList(IMPORTS);
 	}
 
 	@Override

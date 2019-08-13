@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.contract.verifier.builder;
 
+import java.util.List;
+
 class MetaDataBuilder {
 
 	private final GeneratedTestClassBuilder parentBuilder;
@@ -37,6 +39,16 @@ class MetaDataBuilder {
 
 	MetaDataBuilder groovy() {
 		this.parentBuilder.metaData(new GroovyClassMetaData(this.builder, this.metaData));
+		return this;
+	}
+
+	MetaDataBuilder kotlin() {
+		this.parentBuilder.metaData(new KotlinClassMetaData(this.builder, this.metaData));
+		return this;
+	}
+
+	MetaDataBuilder custom(List<ClassMetaData> classMetaData) {
+		classMetaData.forEach(this.parentBuilder::metaData);
 		return this;
 	}
 

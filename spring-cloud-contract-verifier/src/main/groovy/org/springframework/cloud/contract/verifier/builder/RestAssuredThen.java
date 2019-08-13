@@ -45,9 +45,10 @@ class RestAssuredThen implements Then, BodyMethodVisitor {
 	}
 
 	@Override
-	public MethodVisitor<Then> apply(SingleContractMetadata singleContractMetadata) {
+	public MethodVisitor<Then> apply(SingleContractMetadata singleContractMetadata,
+			SingleMethodBuilder methodBuilder) {
 		startBodyBlock(this.blockBuilder, "then:");
-		bodyBlock(this.blockBuilder, this.thens, singleContractMetadata);
+		bodyBlock(this.blockBuilder, this.thens, singleContractMetadata, methodBuilder);
 		return this;
 	}
 

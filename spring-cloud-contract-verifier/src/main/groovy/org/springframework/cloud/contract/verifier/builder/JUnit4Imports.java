@@ -17,28 +17,23 @@
 package org.springframework.cloud.contract.verifier.builder;
 
 import java.util.Arrays;
+import java.util.List;
 
 import org.springframework.cloud.contract.verifier.config.TestFramework;
 
 class JUnit4Imports implements Imports {
 
-	private final BlockBuilder blockBuilder;
-
 	private final GeneratedClassMetaData generatedClassMetaData;
 
 	private static final String[] IMPORTS = { "org.junit.Test", "org.junit.Rule" };
 
-	JUnit4Imports(BlockBuilder blockBuilder,
-			GeneratedClassMetaData generatedClassMetaData) {
-		this.blockBuilder = blockBuilder;
+	JUnit4Imports(GeneratedClassMetaData generatedClassMetaData) {
 		this.generatedClassMetaData = generatedClassMetaData;
 	}
 
 	@Override
-	public Imports call() {
-		Arrays.stream(IMPORTS)
-				.forEach(s -> this.blockBuilder.addLineWithEnding("import " + s));
-		return this;
+	public List<String> fqns() {
+		return Arrays.asList(IMPORTS);
 	}
 
 	@Override

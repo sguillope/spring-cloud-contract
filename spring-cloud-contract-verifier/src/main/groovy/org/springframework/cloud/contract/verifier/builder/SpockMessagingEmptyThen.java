@@ -16,22 +16,19 @@
 
 package org.springframework.cloud.contract.verifier.builder;
 
-import org.springframework.cloud.contract.verifier.config.TestFramework;
 import org.springframework.cloud.contract.verifier.file.SingleContractMetadata;
 
 class SpockMessagingEmptyThen implements Then, BodyMethodVisitor {
 
 	private final BlockBuilder blockBuilder;
 
-	private final GeneratedClassMetaData generatedClassMetaData;
-
 	SpockMessagingEmptyThen(BlockBuilder blockBuilder, GeneratedClassMetaData metaData) {
 		this.blockBuilder = blockBuilder;
-		this.generatedClassMetaData = metaData;
 	}
 
 	@Override
-	public MethodVisitor<Then> apply(SingleContractMetadata metadata) {
+	public MethodVisitor<Then> apply(SingleContractMetadata metadata,
+			SingleMethodBuilder methodBuilder) {
 		startBodyBlock(this.blockBuilder, "then:");
 		this.blockBuilder.addLineWithEnding("noExceptionThrown()");
 		endBodyBlock(this.blockBuilder);
@@ -41,8 +38,6 @@ class SpockMessagingEmptyThen implements Then, BodyMethodVisitor {
 	@Override
 	public boolean accept(SingleContractMetadata metadata) {
 		return metadata.isMessaging()
-				&& this.generatedClassMetaData.configProperties
-						.getTestFramework() == TestFramework.SPOCK
 				&& metadata.getContract().getOutputMessage() == null;
 	}
 

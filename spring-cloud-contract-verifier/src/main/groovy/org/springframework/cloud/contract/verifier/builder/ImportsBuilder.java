@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.contract.verifier.builder;
 
+import java.util.List;
+
 class ImportsBuilder {
 
 	private final GeneratedTestClassBuilder parentBuilder;
@@ -31,74 +33,80 @@ class ImportsBuilder {
 	}
 
 	ImportsBuilder defaultImports() {
-		this.parentBuilder.imports(new DefaultImports(builder, metaData));
-		this.parentBuilder.staticImports(new DefaultStaticImports(builder));
+		this.parentBuilder.imports(new DefaultImports(metaData));
+		this.parentBuilder.staticImports(new DefaultStaticImports());
 		return this;
 	}
 
 	ImportsBuilder custom() {
-		this.parentBuilder.imports(new CustomImports(builder, metaData));
-		this.parentBuilder.staticImports(new CustomStaticImports(builder, metaData));
+		this.parentBuilder.imports(new CustomImports(metaData));
+		this.parentBuilder.staticImports(new CustomStaticImports(metaData));
 		return this;
 	}
 
 	ImportsBuilder json() {
-		this.parentBuilder.imports(new JsonPathImports(builder, metaData));
-		this.parentBuilder.staticImports(new DefaultJsonStaticImports(builder, metaData));
+		this.parentBuilder.imports(new JsonPathImports(metaData));
+		this.parentBuilder.staticImports(new DefaultJsonStaticImports(metaData));
 		return this;
 	}
 
 	ImportsBuilder xml() {
-		this.parentBuilder.imports(new XmlImports(builder, metaData));
+		this.parentBuilder.imports(new XmlImports(metaData));
 		return this;
 	}
 
 	ImportsBuilder jUnit4() {
-		this.parentBuilder.imports(new JUnit4Imports(builder, metaData),
-				new JUnit4IgnoreImports(builder, metaData),
-				new JUnit4OrderImports(builder, metaData));
+		this.parentBuilder.imports(new JUnit4Imports(metaData),
+				new JUnit4IgnoreImports(metaData), new JUnit4OrderImports(metaData));
 		return this;
 	}
 
 	ImportsBuilder jUnit5() {
-		this.parentBuilder.imports(new JUnit5Imports(builder, metaData),
-				new JUnit5IgnoreImports(builder, metaData),
-				new JUnit5OrderImports(builder, metaData));
+		this.parentBuilder.imports(new JUnit5Imports(metaData),
+				new JUnit5IgnoreImports(metaData), new JUnit5OrderImports(metaData));
 		return this;
 	}
 
 	ImportsBuilder testNG() {
-		this.parentBuilder.imports(new TestNGImports(builder, metaData));
+		this.parentBuilder.imports(new TestNGImports(metaData));
 		return this;
 	}
 
 	ImportsBuilder spock() {
-		this.parentBuilder.imports(new SpockImports(builder, metaData),
-				new SpockIgnoreImports(builder, metaData),
-				new SpockOrderImports(builder, metaData));
+		this.parentBuilder.imports(new SpockImports(metaData),
+				new SpockIgnoreImports(metaData), new SpockOrderImports(metaData));
 		return this;
 	}
 
 	ImportsBuilder messaging() {
-		this.parentBuilder.imports(new MessagingImports(builder, metaData));
-		this.parentBuilder.staticImports(new MessagingStaticImports(builder, metaData));
+		this.parentBuilder.imports(new MessagingImports(metaData));
+		this.parentBuilder.staticImports(new MessagingStaticImports(metaData));
 		return this;
 	}
 
 	ImportsBuilder restAssured() {
-		this.parentBuilder.imports(new MockMvcRestAssuredImports(builder, metaData),
-				new ExplicitRestAssuredImports(builder, metaData),
-				new WebTestClientRestAssuredImports(builder, metaData));
-		this.parentBuilder.staticImports(
-				new MockMvcRestAssuredStaticImports(builder, metaData),
-				new ExplicitRestAssuredStaticImports(builder, metaData),
-				new WebTestClientRestAssured3StaticImports(builder, metaData));
+		this.parentBuilder.imports(new MockMvcRestAssuredImports(metaData),
+				new ExplicitRestAssuredImports(metaData),
+				new WebTestClientRestAssuredImports(metaData));
+		this.parentBuilder.staticImports(new MockMvcRestAssuredStaticImports(metaData),
+				new ExplicitRestAssuredStaticImports(metaData),
+				new WebTestClientRestAssured3StaticImports(metaData));
 		return this;
 	}
 
 	ImportsBuilder jaxRs() {
-		this.parentBuilder.imports(new JaxRsImports(builder, metaData));
-		this.parentBuilder.staticImports(new JaxRsStaticImports(builder, metaData));
+		this.parentBuilder.imports(new JaxRsImports(metaData));
+		this.parentBuilder.staticImports(new JaxRsStaticImports(metaData));
+		return this;
+	}
+
+	ImportsBuilder customImports(List<Imports> imports) {
+		this.parentBuilder.imports(imports);
+		return this;
+	}
+
+	ImportsBuilder customStaticImports(List<Imports> imports) {
+		this.parentBuilder.staticImports(imports);
 		return this;
 	}
 

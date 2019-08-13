@@ -29,7 +29,6 @@ import org.springframework.cloud.contract.verifier.builder.SingleTestGenerator
 import org.springframework.cloud.contract.verifier.config.ContractVerifierConfigProperties
 
 import static org.springframework.cloud.contract.verifier.util.NamesUtil.beforeLast
-import static org.springframework.cloud.contract.verifier.util.NamesUtil.capitalize
 import static org.springframework.cloud.contract.verifier.util.NamesUtil.packageToDirectory
 
 @CompileStatic
@@ -49,14 +48,11 @@ class FileSaver {
 
 	void saveClassFile(Path classPath, byte[] classBytes) {
 		log.info("Creating new class file [$classPath]")
-		Files.
-				write(classPath, classBytes, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
+		Files.write(classPath, classBytes, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
 	}
 
 	protected Path pathToClass(Path testBaseDir, String fileName) {
-		return Paths.get(testBaseDir.toString(),
-				capitalize(fileName) + generator.fileExtension(this.properties)).
-				toAbsolutePath()
+		return Paths.get(testBaseDir.toString(), fileName).toAbsolutePath()
 	}
 
 	protected Path generateTestBaseDir(String basePackageClass, String includedDirectoryRelativePath) {

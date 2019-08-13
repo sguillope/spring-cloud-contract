@@ -27,7 +27,8 @@ class MessagingBodyWhen implements When {
 	}
 
 	@Override
-	public MethodVisitor<When> apply(SingleContractMetadata metadata) {
+	public MethodVisitor<When> apply(SingleContractMetadata metadata,
+			SingleMethodBuilder methodBuilder) {
 		this.blockBuilder.addIndented("contractVerifierMessaging.send(inputMessage, \""
 				+ metadata.getContract().getInput().getMessageFrom().getServerValue()
 				+ "\")").addEndingIfNotPresent();

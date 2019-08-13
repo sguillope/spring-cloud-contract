@@ -17,29 +17,24 @@
 package org.springframework.cloud.contract.verifier.builder;
 
 import java.util.Arrays;
+import java.util.List;
 
 import org.springframework.cloud.contract.verifier.file.SingleContractMetadata;
 
-class DefaultJsonStaticImports implements Imports {
-
-	private final BlockBuilder blockBuilder;
+class DefaultJsonStaticImports implements StaticImports {
 
 	private final GeneratedClassMetaData generatedClassMetaData;
 
 	private static final String[] IMPORTS = {
 			"com.toomuchcoding.jsonassert.JsonAssertion.assertThatJson" };
 
-	DefaultJsonStaticImports(BlockBuilder blockBuilder,
-			GeneratedClassMetaData generatedClassMetaData) {
-		this.blockBuilder = blockBuilder;
+	DefaultJsonStaticImports(GeneratedClassMetaData generatedClassMetaData) {
 		this.generatedClassMetaData = generatedClassMetaData;
 	}
 
 	@Override
-	public Imports call() {
-		Arrays.stream(IMPORTS)
-				.forEach(s -> this.blockBuilder.addLineWithEnding("import static " + s));
-		return this;
+	public List<String> fqns() {
+		return Arrays.asList(IMPORTS);
 	}
 
 	@Override

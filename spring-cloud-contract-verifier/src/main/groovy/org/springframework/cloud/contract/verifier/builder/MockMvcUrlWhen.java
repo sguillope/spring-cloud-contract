@@ -34,7 +34,8 @@ class MockMvcUrlWhen implements When, MockMvcAcceptor, QueryParamsResolver {
 	}
 
 	@Override
-	public MethodVisitor<When> apply(SingleContractMetadata metadata) {
+	public MethodVisitor<When> apply(SingleContractMetadata metadata,
+			SingleMethodBuilder methodBuilder) {
 		Request request = metadata.getContract().getRequest();
 		Url url = getUrl(request);
 		addUrl(url, request);

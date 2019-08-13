@@ -17,24 +17,17 @@
 package org.springframework.cloud.contract.verifier.builder;
 
 import java.util.Arrays;
+import java.util.List;
 
-class DefaultStaticImports implements Imports {
-
-	private final BlockBuilder blockBuilder;
+class DefaultStaticImports implements StaticImports {
 
 	private static final String[] IMPORTS = {
 			"org.springframework.cloud.contract.verifier.assertion.SpringCloudContractAssertions.assertThat",
 			"org.springframework.cloud.contract.verifier.util.ContractVerifierUtil.*" };
 
-	DefaultStaticImports(BlockBuilder blockBuilder) {
-		this.blockBuilder = blockBuilder;
-	}
-
 	@Override
-	public Imports call() {
-		Arrays.stream(IMPORTS)
-				.forEach(s -> this.blockBuilder.addLineWithEnding("import static " + s));
-		return this;
+	public List<String> fqns() {
+		return Arrays.asList(IMPORTS);
 	}
 
 	@Override

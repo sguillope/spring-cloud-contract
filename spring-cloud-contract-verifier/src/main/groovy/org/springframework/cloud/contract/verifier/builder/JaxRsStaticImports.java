@@ -17,28 +17,23 @@
 package org.springframework.cloud.contract.verifier.builder;
 
 import java.util.Arrays;
+import java.util.List;
 
 import org.springframework.cloud.contract.verifier.config.TestMode;
 
-class JaxRsStaticImports implements Imports {
-
-	private final BlockBuilder blockBuilder;
+class JaxRsStaticImports implements StaticImports {
 
 	private final GeneratedClassMetaData generatedClassMetaData;
 
 	private static final String[] IMPORTS = { "javax.ws.rs.client.Entity.*" };
 
-	JaxRsStaticImports(BlockBuilder blockBuilder,
-			GeneratedClassMetaData generatedClassMetaData) {
-		this.blockBuilder = blockBuilder;
+	JaxRsStaticImports(GeneratedClassMetaData generatedClassMetaData) {
 		this.generatedClassMetaData = generatedClassMetaData;
 	}
 
 	@Override
-	public Imports call() {
-		Arrays.stream(IMPORTS)
-				.forEach(s -> this.blockBuilder.addLineWithEnding("import static " + s));
-		return this;
+	public List<String> fqns() {
+		return Arrays.asList(IMPORTS);
 	}
 
 	@Override

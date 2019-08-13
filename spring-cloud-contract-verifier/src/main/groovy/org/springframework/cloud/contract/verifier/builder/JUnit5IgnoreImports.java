@@ -16,25 +16,25 @@
 
 package org.springframework.cloud.contract.verifier.builder;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.springframework.cloud.contract.verifier.config.TestFramework;
 import org.springframework.cloud.contract.verifier.file.SingleContractMetadata;
 
 class JUnit5IgnoreImports implements Imports {
 
-	private final BlockBuilder blockBuilder;
-
 	private final GeneratedClassMetaData generatedClassMetaData;
 
-	JUnit5IgnoreImports(BlockBuilder blockBuilder,
-			GeneratedClassMetaData generatedClassMetaData) {
-		this.blockBuilder = blockBuilder;
+	private static final String[] IMPORTS = { "org.junit.jupiter.api.Disabled" };
+
+	JUnit5IgnoreImports(GeneratedClassMetaData generatedClassMetaData) {
 		this.generatedClassMetaData = generatedClassMetaData;
 	}
 
 	@Override
-	public Imports call() {
-		this.blockBuilder.addLineWithEnding("import org.junit.jupiter.api.Disabled");
-		return this;
+	public List<String> fqns() {
+		return Arrays.asList(IMPORTS);
 	}
 
 	@Override

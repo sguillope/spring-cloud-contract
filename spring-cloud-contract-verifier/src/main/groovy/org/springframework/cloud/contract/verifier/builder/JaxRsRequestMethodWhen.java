@@ -36,7 +36,8 @@ class JaxRsRequestMethodWhen implements When, JaxRsBodyParser {
 	}
 
 	@Override
-	public MethodVisitor<When> apply(SingleContractMetadata metadata) {
+	public MethodVisitor<When> apply(SingleContractMetadata metadata,
+			SingleMethodBuilder methodBuilder) {
 		appendMethodAndBody(metadata);
 		return this;
 	}

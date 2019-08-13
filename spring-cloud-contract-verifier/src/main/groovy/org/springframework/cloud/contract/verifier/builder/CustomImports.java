@@ -17,24 +17,19 @@
 package org.springframework.cloud.contract.verifier.builder;
 
 import java.util.Arrays;
+import java.util.List;
 
 class CustomImports implements Imports {
 
-	private final BlockBuilder blockBuilder;
-
 	private final GeneratedClassMetaData generatedClassMetaData;
 
-	CustomImports(BlockBuilder blockBuilder,
-			GeneratedClassMetaData generatedClassMetaData) {
-		this.blockBuilder = blockBuilder;
+	CustomImports(GeneratedClassMetaData generatedClassMetaData) {
 		this.generatedClassMetaData = generatedClassMetaData;
 	}
 
 	@Override
-	public Imports call() {
-		Arrays.stream(this.generatedClassMetaData.configProperties.getImports())
-				.forEach(s -> this.blockBuilder.addLineWithEnding("import " + s));
-		return this;
+	public List<String> fqns() {
+		return Arrays.asList(this.generatedClassMetaData.configProperties.getImports());
 	}
 
 	@Override

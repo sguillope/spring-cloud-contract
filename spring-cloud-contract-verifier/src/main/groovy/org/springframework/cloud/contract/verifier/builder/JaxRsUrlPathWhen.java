@@ -39,7 +39,8 @@ class JaxRsUrlPathWhen implements When, JaxRsAcceptor, QueryParamsResolver {
 	}
 
 	@Override
-	public MethodVisitor<When> apply(SingleContractMetadata metadata) {
+	public MethodVisitor<When> apply(SingleContractMetadata metadata,
+			SingleMethodBuilder methodBuilder) {
 		appendUrlPathAndQueryParameters(metadata.getContract().getRequest());
 		return this;
 	}

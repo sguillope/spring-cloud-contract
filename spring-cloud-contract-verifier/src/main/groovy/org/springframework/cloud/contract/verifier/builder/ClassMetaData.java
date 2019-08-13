@@ -16,13 +16,15 @@
 
 package org.springframework.cloud.contract.verifier.builder;
 
-interface ClassMetaData extends Acceptor {
+public interface ClassMetaData extends Acceptor {
 
 	ClassMetaData setupLineEnding();
 
 	ClassMetaData setupLabelPrefix();
 
-	ClassMetaData packageDefinition();
+	ClassBuilder classDefinition();
+
+	ClassBodyBuilder classBody();
 
 	ClassMetaData modifier();
 
@@ -31,5 +33,9 @@ interface ClassMetaData extends Acceptor {
 	ClassMetaData parentClass();
 
 	ClassMetaData className();
+
+	String getClassNameSuffix();
+
+	String getFileExtension();
 
 }

@@ -21,18 +21,26 @@ package org.springframework.cloud.contract.verifier.builder;
  *
  * @author Olga Maciaszek-Sharma
  * @author Marcin Grzejszczak
+ * @author Tim Ysewyn
  * @since 2.2.0
  */
 public class GeneratedTestClass {
 
-	final BlockBuilder blockBuilder;
+	private final String fileName;
 
-	GeneratedTestClass(BlockBuilder blockBuilder) {
-		this.blockBuilder = blockBuilder;
+	private final String content;
+
+	GeneratedTestClass(String fileName, String content) {
+		this.fileName = fileName;
+		this.content = content;
 	}
 
-	public String asClassString() {
-		return this.blockBuilder.toString();
+	public String fileName() {
+		return this.fileName;
+	}
+
+	public String content() {
+		return this.content;
 	}
 
 }

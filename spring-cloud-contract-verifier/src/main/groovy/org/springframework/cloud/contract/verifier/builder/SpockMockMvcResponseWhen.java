@@ -31,8 +31,10 @@ class SpockMockMvcResponseWhen implements When, MockMvcAcceptor {
 	}
 
 	@Override
-	public MethodVisitor<When> apply(SingleContractMetadata metadata) {
-		this.blockBuilder.addIndented("def response = given().spec(request)");
+	public MethodVisitor<When> apply(SingleContractMetadata metadata,
+			SingleMethodBuilder methodBuilder) {
+		methodBuilder.variable("response", "def");
+		this.blockBuilder.appendWithSpace("= given().spec(request)");
 		return this;
 	}
 

@@ -16,188 +16,48 @@
 
 package org.springframework.cloud.contract.verifier.builder;
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.springframework.cloud.contract.verifier.file.SingleContractMetadata;
-
 /**
  * Builds a single method body. Must be executed per contract.
  *
  * @author Olga Maciaszek-Sharma
  * @author Marcin Grzejszczak
+ * @author Tim Ysewyn
  * @since 2.2.0
  */
-class SingleMethodBuilder {
+public interface SingleMethodBuilder {
 
-	private List<MethodAnnotations> methodAnnotations = new LinkedList<>();
+	SingleMethodBuilder methodAnnotation(MethodAnnotations methodAnnotations);
 
-	private List<MethodMetadata> methodMetadata = new LinkedList<>();
+	MethodAnnotationBuilder methodAnnotation();
 
-	private List<Given> givens = new LinkedList<>();
+	SingleMethodBuilder methodAnnotation(MethodAnnotations... methodAnnotations);
 
-	private List<When> whens = new LinkedList<>();
+	MethodMetadataBuilder methodMetadata();
 
-	private List<Then> thens = new LinkedList<>();
+	SingleMethodBuilder methodMetadata(MethodMetadata... methodMetadata);
 
-	final GeneratedClassMetaData generatedClassMetaData;
+	SingleMethodBuilder restAssured();
 
-	final BlockBuilder blockBuilder;
+	SingleMethodBuilder jaxRs();
 
-	private SingleMethodBuilder(BlockBuilder blockBuilder,
-			GeneratedClassMetaData generatedClassMetaData) {
-		this.blockBuilder = blockBuilder;
-		this.generatedClassMetaData = generatedClassMetaData;
-	}
+	SingleMethodBuilder messaging();
 
-	static SingleMethodBuilder builder(BlockBuilder blockBuilder,
-			GeneratedClassMetaData generatedClassMetaData) {
-		return new SingleMethodBuilder(blockBuilder, generatedClassMetaData);
-	}
+	SingleMethodBuilder given(Given... given);
 
-	SingleMethodBuilder methodAnnotation(MethodAnnotations methodAnnotations) {
-		this.methodAnnotations.add(methodAnnotations);
-		return this;
-	}
+	SingleMethodBuilder when(When... when);
 
-	MethodAnnotationBuilder methodAnnotation() {
-		return new MethodAnnotationBuilder(this);
-	}
+	SingleMethodBuilder then(Then... then);
 
-	SingleMethodBuilder methodAnnotation(MethodAnnotations... methodAnnotations) {
-		this.methodAnnotations.addAll(Arrays.asList(methodAnnotations));
-		return this;
-	}
+	BlockBuilder getBlockBuilder();
 
-	MethodMetadataBuilder methodMetadata() {
-		return new MethodMetadataBuilder(this);
-	}
-
-	SingleMethodBuilder methodMetadata(MethodMetadata... methodMetadata) {
-		this.methodMetadata.addAll(Arrays.asList(methodMetadata));
-		return this;
-	}
-
-	SingleMethodBuilder restAssured() {
-		return given(
-				new JavaRestAssuredGiven(this.blockBuilder, this.generatedClassMetaData))
-						.given(new SpockRestAssuredGiven(this.blockBuilder,
-								this.generatedClassMetaData))
-						.when(new JavaRestAssuredWhen(this.blockBuilder,
-								this.generatedClassMetaData))
-						.when(new SpockRestAssuredWhen(this.blockBuilder,
-								this.generatedClassMetaData))
-						.then(new JavaRestAssuredThen(this.blockBuilder,
-								this.generatedClassMetaData))
-						.then(new SpockRestAssuredThen(this.blockBuilder,
-								this.generatedClassMetaData));
-	}
-
-	SingleMethodBuilder jaxRs() {
-		return given(new JaxRsGiven(this.generatedClassMetaData))
-				.when(new JavaJaxRsWhen(this.blockBuilder, this.generatedClassMetaData))
-				.when(new SpockJaxRsWhen(this.blockBuilder, this.generatedClassMetaData))
-				.then(new JavaJaxRsThen(this.blockBuilder, this.generatedClassMetaData))
-				.then(new SpockJaxRsThen(this.blockBuilder, this.generatedClassMetaData));
-	}
-
-	SingleMethodBuilder messaging() {
-		// @formatter:off
-		return given(new JavaMessagingGiven(this.blockBuilder, this.generatedClassMetaData))
-				.given(new SpockMessagingGiven(this.blockBuilder, this.generatedClassMetaData))
-				.when(new MessagingWhen(this.blockBuilder, this.generatedClassMetaData))
-				.then(new JavaMessagingWithBodyThen(this.blockBuilder,
-						this.generatedClassMetaData))
-				.then(new SpockMessagingWithBodyThen(this.blockBuilder,
-						this.generatedClassMetaData))
-				.then(new SpockMessagingEmptyThen(this.blockBuilder,
-						this.generatedClassMetaData));
-		// @formatter:on
-	}
-
-	SingleMethodBuilder given(Given... given) {
-		this.givens.addAll(Arrays.asList(given));
-		return this;
-	}
-
-	SingleMethodBuilder when(When... when) {
-		this.whens.addAll(Arrays.asList(when));
-		return this;
-	}
-
-	SingleMethodBuilder then(Then... then) {
-		this.thens.addAll(Arrays.asList(then));
-		return this;
-	}
+	GeneratedClassMetaData getGeneratedClassMetaData();
 
 	/**
 	 * Mutates the {@link BlockBuilder} to generate a methodBuilder
 	 * @return block builder with contents of a single methodBuilder
 	 */
-	BlockBuilder build() {
-		MethodMetadata methodMetadatum = pickMetadatum();
-		// \n
-		this.blockBuilder.addEmptyLine();
-		this.generatedClassMetaData.toSingleContractMetadata().forEach(metaData -> {
-			// @Test
-			if (visit(this.methodAnnotations, metaData, false)) {
-				this.blockBuilder.addEmptyLine();
-			}
-			// @formatter:off
-			// public void validate_foo()
-			this.blockBuilder.append(methodMetadatum::modifier)
-					.appendWithSpace(methodMetadatum::returnType)
-					.appendWithSpace(() -> methodMetadatum.name(metaData))
-					.append("() throws Exception ");
-			// (space) {
-			this.blockBuilder.inBraces(() -> {
-				// (indent) given
-				if (visit(this.givens, metaData)) {
-					this.blockBuilder.addEmptyLine();
-				}
-				// (indent) when
-				visit(this.whens, metaData);
-				this.blockBuilder.addEmptyLine();
-				// (indent) then
-				visit(this.thens, metaData);
-			});
-			this.blockBuilder.addEmptyLine();
-			// }
-		});
-		// @formatter:on
-		return this.blockBuilder;
-	}
+	BlockBuilder build();
 
-	private MethodMetadata pickMetadatum() {
-		return this.methodMetadata.stream().filter(Acceptor::accept).findFirst()
-				.orElseThrow(() -> new IllegalStateException(
-						"No matching method metadata found"));
-	}
-
-	private boolean visit(List<? extends MethodVisitor> list,
-			SingleContractMetadata metaData) {
-		return visit(list, metaData, true);
-	}
-
-	private boolean visit(List<? extends MethodVisitor> list,
-			SingleContractMetadata metaData, boolean addLineEnding) {
-		List<? extends MethodVisitor> visitors = list.stream()
-				.filter(o -> o.accept(metaData)).collect(Collectors.toList());
-		Iterator<? extends MethodVisitor> iterator = visitors.iterator();
-		while (iterator.hasNext()) {
-			MethodVisitor visitor = iterator.next();
-			visitor.apply(metaData);
-			if (addLineEnding) {
-				this.blockBuilder.addEndingIfNotPresent();
-			}
-			if (iterator.hasNext()) {
-				this.blockBuilder.addEmptyLine();
-			}
-		}
-		return !visitors.isEmpty();
-	}
+	SingleMethodBuilder variable(String name, String className);
 
 }

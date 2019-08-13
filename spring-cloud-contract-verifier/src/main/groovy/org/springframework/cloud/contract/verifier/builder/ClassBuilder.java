@@ -16,6 +16,30 @@
 
 package org.springframework.cloud.contract.verifier.builder;
 
-interface Visitor<T> extends Acceptor, OurCallable<T> {
+import java.util.List;
+
+/**
+ * Builds the skeleton of the class. (Static) Imports, class definition,....
+ *
+ * @author Olga Maciaszek-Sharma
+ * @author Marcin Grzejszczak
+ * @author Tim Ysewyn
+ * @since 2.2.0
+ */
+interface ClassBuilder {
+
+	ClassBuilder setupImports(List<Imports> imports);
+
+	ClassBuilder setStaticImports(List<Imports> staticImports);
+
+	ClassBuilder setupAnnotations(List<ClassAnnotation> annotations);
+
+	ClassMetaData build();
+
+	ClassBuilder writeImport(String fqn);
+
+	ClassBuilder writeStaticImport(String fqn);
+
+	ClassBuilder writeAnnotation(String annotation);
 
 }

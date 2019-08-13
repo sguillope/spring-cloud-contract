@@ -16,29 +16,19 @@
 
 package org.springframework.cloud.contract.verifier.builder;
 
-import java.util.Arrays;
-
 import org.springframework.cloud.contract.verifier.config.TestFramework;
 
 class JUnit4OrderClassAnnotation implements ClassAnnotation {
 
-	private final BlockBuilder blockBuilder;
-
 	private final GeneratedClassMetaData generatedClassMetaData;
 
-	private static final String[] ANNOTATIONS = {
-			"@FixMethodOrder(MethodSorters.NAME_ASCENDING)" };
-
-	JUnit4OrderClassAnnotation(BlockBuilder blockBuilder,
-			GeneratedClassMetaData generatedClassMetaData) {
-		this.blockBuilder = blockBuilder;
+	JUnit4OrderClassAnnotation(GeneratedClassMetaData generatedClassMetaData) {
 		this.generatedClassMetaData = generatedClassMetaData;
 	}
 
 	@Override
-	public ClassAnnotation call() {
-		Arrays.stream(ANNOTATIONS).forEach(this.blockBuilder::addLine);
-		return this;
+	public String annotation() {
+		return "@FixMethodOrder(MethodSorters.NAME_ASCENDING)";
 	}
 
 	@Override

@@ -24,25 +24,24 @@ class MessagingReceiveMessageThen implements Then, BodyMethodVisitor {
 
 	private final BlockBuilder blockBuilder;
 
-	private final GeneratedClassMetaData generatedClassMetaData;
-
 	private final ComparisonBuilder comparisonBuilder;
 
 	MessagingReceiveMessageThen(BlockBuilder blockBuilder,
-			GeneratedClassMetaData generatedClassMetaData,
 			ComparisonBuilder comparisonBuilder) {
 		this.blockBuilder = blockBuilder;
-		this.generatedClassMetaData = generatedClassMetaData;
 		this.comparisonBuilder = comparisonBuilder;
 	}
 
 	@Override
-	public MethodVisitor<Then> apply(SingleContractMetadata singleContractMetadata) {
+	public MethodVisitor<Then> apply(SingleContractMetadata singleContractMetadata,
+			SingleMethodBuilder methodBuilder) {
 		OutputMessage outputMessage = singleContractMetadata.getContract()
 				.getOutputMessage();
-		this.blockBuilder.addLineWithEnding(
-				"ContractVerifierMessage response = contractVerifierMessaging.receive("
-						+ sentToValue(outputMessage.getSentTo().getServerValue()) + ")");
+		methodBuilder.variable("response", "ContractVerifierMessage");
+		this.blockBuilder
+				.appendWithSpace("= contractVerifierMessaging.receive("
+						+ sentToValue(outputMessage.getSentTo().getServerValue()) + ")")
+				.addEndingIfNotPresent().addEmptyLine();
 		this.blockBuilder.addLineWithEnding(
 				this.comparisonBuilder.assertThatIsNotNull("response"));
 		return this;

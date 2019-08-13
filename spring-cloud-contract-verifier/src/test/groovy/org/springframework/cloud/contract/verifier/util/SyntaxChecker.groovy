@@ -19,6 +19,7 @@ package org.springframework.cloud.contract.verifier.util
 import java.lang.reflect.Method
 
 import javax.inject.Inject
+import javax.script.ScriptEngineManager
 import javax.ws.rs.client.Entity
 import javax.ws.rs.client.WebTarget
 import javax.ws.rs.core.Response
@@ -178,8 +179,16 @@ private void test(String test) {
 		String className = className(test)
 		String fqnClassName = "com.example.${className}"
 		test = test.replaceAll("class FooTest", "class " + className)
-		.replaceAll("import javax.ws.rs.core.Response", "import javax.ws.rs.core.Response; import javax.ws.rs.client.WebTarget;")
+				   .replaceAll("import javax.ws.rs.core.Response", "import javax.ws.rs.core.Response; import javax.ws.rs.client.WebTarget;")
 		return InMemoryJavaCompiler.compile(fqnClassName, test)
+	}
+
+	static Class tryToCompileKotlin(String builderName, String test) {
+		String className = className(test)
+		String fqnClassName = "com.example.${className}"
+		test = test.replaceAll("class FooTest", "class " + className)
+				   .replaceAll("import javax.ws.rs.core.Response", "import javax.ws.rs.core.Response; import javax.ws.rs.client.WebTarget;")
+		return tryToCompileKotlinWithoutImports(fqnClassName, test)
 	}
 
 	private static String className(String test) {
@@ -193,6 +202,11 @@ private void test(String test) {
 
 	static boolean tryToCompileJavaWithoutImports(String fqn, String test) {
 		InMemoryJavaCompiler.compile(fqn, test)
+		return true
+	}
+
+	static boolean tryToCompileKotlinWithoutImports(String fqn, String test) {
+		new ScriptEngineManager().getEngineByExtension("kts").eval(test)
 		return true
 	}
 

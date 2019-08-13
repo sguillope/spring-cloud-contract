@@ -26,34 +26,27 @@ class MessagingWithBodyThen implements Then, BodyMethodVisitor {
 
 	private final BlockBuilder blockBuilder;
 
-	private final GeneratedClassMetaData generatedClassMetaData;
-
-	private final ComparisonBuilder comparisonBuilder;
-
 	private final List<Then> thens = new LinkedList<>();
 
 	MessagingWithBodyThen(BlockBuilder blockBuilder,
 			GeneratedClassMetaData generatedClassMetaData,
 			ComparisonBuilder comparisonBuilder) {
 		this.blockBuilder = blockBuilder;
-		this.generatedClassMetaData = generatedClassMetaData;
-		this.comparisonBuilder = comparisonBuilder;
 		this.thens.addAll(Arrays.asList(
 				new MessagingSpockNoMessageThen(this.blockBuilder,
 						generatedClassMetaData),
-				new MessagingReceiveMessageThen(this.blockBuilder, generatedClassMetaData,
-						this.comparisonBuilder),
-				new MessagingHeadersThen(this.blockBuilder, generatedClassMetaData,
-						this.comparisonBuilder),
+				new MessagingReceiveMessageThen(this.blockBuilder, comparisonBuilder),
+				new MessagingHeadersThen(this.blockBuilder, comparisonBuilder),
 				new MessagingBodyThen(this.blockBuilder, generatedClassMetaData,
 						comparisonBuilder),
 				new MessagingAssertThatThen(this.blockBuilder)));
 	}
 
 	@Override
-	public MethodVisitor<Then> apply(SingleContractMetadata singleContractMetadata) {
+	public MethodVisitor<Then> apply(SingleContractMetadata singleContractMetadata,
+			SingleMethodBuilder methodBuilder) {
 		startBodyBlock(this.blockBuilder, "then:");
-		bodyBlock(this.blockBuilder, this.thens, singleContractMetadata);
+		bodyBlock(this.blockBuilder, this.thens, singleContractMetadata, methodBuilder);
 		return this;
 	}
 

@@ -137,22 +137,52 @@ public enum TestFramework {
 		};
 	}
 
+	/**
+	 * Returns the class modifier.
+	 * @deprecated in favor of {@code ClassMetaData}
+	 * @return the class modifier
+	 */
+	@Deprecated
 	public String getClassModifier() {
 		return this.testFrameworkDefinition.getClassModifier();
 	}
 
+	/**
+	 * Returns the method modifier.
+	 * @deprecated in favor of {@code ClassMetaData}
+	 * @return the class modifier.
+	 */
+	@Deprecated
 	public String getMethodModifier() {
 		return this.testFrameworkDefinition.getMethodModifier();
 	}
 
+	/**
+	 * Returns the line suffix.
+	 * @deprecated in favor of {@code ClassMetaData}
+	 * @return the line suffix.
+	 */
+	@Deprecated
 	public String getLineSuffix() {
 		return this.testFrameworkDefinition.getLineSuffix();
 	}
 
+	/**
+	 * @return the file extension. E.g. for Java tests that would be {@code .java}
+	 * @deprecated See
+	 * {@link org.springframework.cloud.contract.verifier.builder.ClassMetaData#getFileExtension()}
+	 */
+	@Deprecated
 	public String getClassExtension() {
 		return this.testFrameworkDefinition.getClassExtension();
 	}
 
+	/**
+	 * @return the test class name suffix. E.g. for JUnit tests that would be {@code Test}
+	 * @deprecated See
+	 * {@link org.springframework.cloud.contract.verifier.builder.ClassMetaData#getClassNameSuffix()}
+	 */
+	@Deprecated
 	public String getClassNameSuffix() {
 		return this.testFrameworkDefinition.getClassNameSuffix();
 	}

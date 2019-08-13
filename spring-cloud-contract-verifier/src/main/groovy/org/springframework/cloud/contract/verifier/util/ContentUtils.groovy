@@ -594,6 +594,23 @@ class ContentUtils {
 				}"""
 	}
 
+	static String getKotlinMultipartFileParameterContent(String propertyName, NamedProperty propertyValue,
+			Function<FromFileProperty, String> bytesFromFile) {
+		return getKotlinMultipartFileParameterContent(propertyName, propertyValue, { FromFileProperty property -> bytesFromFile.apply(property) })
+	}
+
+	static String getKotlinMultipartFileParameterContent(String propertyName, NamedProperty propertyValue,
+			Closure<String> bytesFromFile) {
+		return """"${escapeJava(propertyName)}", ${
+			namedPropertyName(propertyValue, '"')
+		}, """ +
+				"""${
+					kotlinNamedPropertyValue(propertyValue, '"', bytesFromFile)
+				}${
+					namedContentTypeNameIfPresent(propertyValue, '"')
+				}"""
+	}
+
 	static String namedPropertyName(NamedProperty property, String quote) {
 		return property.name.serverValue instanceof ExecutionProperty ?
 				property.name.serverValue.toString() : quote +
@@ -648,6 +665,26 @@ class ContentUtils {
 		}
 		return quote +
 				escapeJava(property.value.serverValue.toString()) + quote + ".getBytes()"
+	}
+
+	static String kotlinNamedPropertyValue(NamedProperty property, String quote, Closure<String> bytesFromFile) {
+		if (property.value.serverValue instanceof ExecutionProperty) {
+			return property.value.serverValue.toString()
+		}
+		else if (property.value.serverValue instanceof byte[]) {
+			byte[] bytes = (byte[]) property.value.serverValue
+			return "byteArrayOf(" + bytes.collect { it }.join(", ") + ")"
+		}
+		else if (property.value.serverValue instanceof FromFileProperty) {
+			FromFileProperty fromFileProperty = (FromFileProperty) property.value.serverValue
+			if (fromFileProperty.isByte()) {
+				return bytesFromFile(fromFileProperty)
+			}
+			return "byteArrayOf(" + fromFileProperty.asBytes().collect { it }.
+					join(", ") + ")"
+		}
+		return quote +
+				escapeJava(property.value.serverValue.toString()) + quote + ".toByteArray()"
 	}
 
 	static ContentType evaluateClientSideContentType(Headers contractHeaders, Object body) {

@@ -26,8 +26,8 @@ class MethodMetadataBuilder {
 
 	MethodMetadataBuilder(SingleMethodBuilder singleMethodBuilder) {
 		this.singleMethodBuilder = singleMethodBuilder;
-		this.builder = singleMethodBuilder.blockBuilder;
-		this.metaData = singleMethodBuilder.generatedClassMetaData;
+		this.builder = singleMethodBuilder.getBlockBuilder();
+		this.metaData = singleMethodBuilder.getGeneratedClassMetaData();
 	}
 
 	MethodMetadataBuilder jUnit() {

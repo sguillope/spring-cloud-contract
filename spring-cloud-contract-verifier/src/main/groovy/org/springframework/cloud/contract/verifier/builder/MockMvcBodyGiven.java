@@ -38,7 +38,8 @@ class MockMvcBodyGiven implements Given {
 	}
 
 	@Override
-	public MethodVisitor<Given> apply(SingleContractMetadata metadata) {
+	public MethodVisitor<Given> apply(SingleContractMetadata metadata,
+			SingleMethodBuilder methodBuilder) {
 		processInput(this.blockBuilder, metadata);
 		return this;
 	}

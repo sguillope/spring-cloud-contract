@@ -23,6 +23,7 @@ import java.util.List;
  * construction.
  *
  * @author Olga Maciaszek-Sharma
+ * @author Tim Ysewyn
  * @since 2.1.0
  */
 public interface TestFrameworkDefinition {
@@ -30,29 +31,44 @@ public interface TestFrameworkDefinition {
 	/**
 	 * @return the class access level modifier. E.g. for Java tests that would mean
 	 * {@code public}
+	 * @deprecated See
+	 * {@link org.springframework.cloud.contract.verifier.builder.ClassMetaData#modifier()}
 	 */
+	@Deprecated
 	String getClassModifier();
 
 	/**
 	 * @return the method access level modifier along with the return type. E.g. for Java
 	 * tests that would mean {@code public void}
+	 * @deprecated See
+	 * {@link org.springframework.cloud.contract.verifier.builder.ClassMetaData#modifier()}
 	 */
+	@Deprecated
 	String getMethodModifier();
 
 	/**
 	 * @return the characters that should end each line. E.g. for Java tests that would
 	 * mean {@code ;}
+	 * @deprecated See
+	 * {@link org.springframework.cloud.contract.verifier.builder.ClassMetaData#setupLineEnding()}
 	 */
+	@Deprecated
 	String getLineSuffix();
 
 	/**
 	 * @return the file extension. E.g. for Java tests that would be {@code .java}
+	 * @deprecated See
+	 * {@link org.springframework.cloud.contract.verifier.builder.ClassMetaData#getFileExtension()}
 	 */
+	@Deprecated
 	String getClassExtension();
 
 	/**
 	 * @return the test class name suffix. E.g. for JUnit tests that would be {@code Test}
+	 * @deprecated See
+	 * {@link org.springframework.cloud.contract.verifier.builder.ClassMetaData#getClassNameSuffix()}
 	 */
+	@Deprecated
 	String getClassNameSuffix();
 
 	/**

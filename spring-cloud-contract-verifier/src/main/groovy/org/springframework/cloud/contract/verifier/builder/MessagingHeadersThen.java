@@ -28,20 +28,16 @@ class MessagingHeadersThen implements Then, BodyMethodVisitor {
 
 	private final BlockBuilder blockBuilder;
 
-	private final GeneratedClassMetaData generatedClassMetaData;
-
 	private final ComparisonBuilder comparisonBuilder;
 
-	MessagingHeadersThen(BlockBuilder blockBuilder,
-			GeneratedClassMetaData generatedClassMetaData,
-			ComparisonBuilder comparisonBuilder) {
+	MessagingHeadersThen(BlockBuilder blockBuilder, ComparisonBuilder comparisonBuilder) {
 		this.blockBuilder = blockBuilder;
-		this.generatedClassMetaData = generatedClassMetaData;
 		this.comparisonBuilder = comparisonBuilder;
 	}
 
 	@Override
-	public MethodVisitor<Then> apply(SingleContractMetadata singleContractMetadata) {
+	public MethodVisitor<Then> apply(SingleContractMetadata singleContractMetadata,
+			SingleMethodBuilder methodBuilder) {
 		endBodyBlock(this.blockBuilder);
 		startBodyBlock(this.blockBuilder, "and:");
 		OutputMessage outputMessage = singleContractMetadata.getContract()

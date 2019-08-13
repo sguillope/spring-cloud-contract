@@ -22,9 +22,14 @@ import java.util.Collection;
 import org.springframework.cloud.contract.verifier.config.ContractVerifierConfigProperties;
 import org.springframework.cloud.contract.verifier.file.ContractMetadata;
 
+import static org.springframework.cloud.contract.verifier.util.NamesUtil.capitalize;
+
 /**
  * Builds a single test.
  *
+ * @author Olga Maciaszek-Sharma
+ * @author Marcin Grzejszczak
+ * @author Tim Ysewyn
  * @since 1.1.0
  */
 public interface SingleTestGenerator {
@@ -54,7 +59,9 @@ public interface SingleTestGenerator {
 	 * @param generatedClassData - information about the generated class
 	 * @param includedDirectoryRelativePath - relative path to the included directory
 	 * @return contents of a single test class
+	 * @deprecated use{@link SingleTestGenerator#generateClass(String, ContractVerifierConfigProperties, Collection, String, GeneratedClassData)}
 	 */
+	@Deprecated
 	default String buildClass(ContractVerifierConfigProperties properties,
 			Collection<ContractMetadata> listOfFiles,
 			String includedDirectoryRelativePath, GeneratedClassData generatedClassData) {
@@ -65,10 +72,36 @@ public interface SingleTestGenerator {
 	}
 
 	/**
+	 * Creates contents of a single test class in which all test scenarios from the
+	 * contract metadata should be placed.
+	 * @param properties - properties passed to the plugin
+	 * @param listOfFiles - list of parsed contracts with additional metadata
+	 * @param generatedClassData - information about the generated class
+	 * @param includedDirectoryRelativePath - relative path to the included directory
+	 * @return contents of a single test class
+	 */
+	default GeneratedTestClass generateClass(ContractVerifierConfigProperties properties,
+			Collection<ContractMetadata> listOfFiles,
+			String includedDirectoryRelativePath, GeneratedClassData generatedClassData) {
+		String className = capitalize(generatedClassData.className);
+		String classNameSuffix = properties.getNameSuffixForTests();
+		if (classNameSuffix == null) {
+			classNameSuffix = properties.getTestFramework().getClassNameSuffix();
+		}
+		return new GeneratedTestClass(
+				className + classNameSuffix
+						+ properties.getTestFramework().getClassExtension(),
+				buildClass(properties, listOfFiles, includedDirectoryRelativePath,
+						generatedClassData));
+	}
+
+	/**
 	 * Extension that should be appended to the generated test class. E.g. {@code .java}
 	 * or {@code .php}
 	 * @param properties - properties passed to the plugin
+	 * @deprecated See {@link ClassMetaData#getFileExtension()}
 	 */
+	@Deprecated
 	String fileExtension(ContractVerifierConfigProperties properties);
 
 	class GeneratedClassData {

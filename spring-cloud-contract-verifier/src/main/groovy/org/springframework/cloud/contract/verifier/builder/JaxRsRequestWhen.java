@@ -34,7 +34,8 @@ class JaxRsRequestWhen implements When, JaxRsAcceptor, QueryParamsResolver {
 	}
 
 	@Override
-	public MethodVisitor<When> apply(SingleContractMetadata metadata) {
+	public MethodVisitor<When> apply(SingleContractMetadata metadata,
+			SingleMethodBuilder methodBuilder) {
 		appendRequestWithRequiredResponseContentType(metadata.getContract().getRequest());
 		return this;
 	}

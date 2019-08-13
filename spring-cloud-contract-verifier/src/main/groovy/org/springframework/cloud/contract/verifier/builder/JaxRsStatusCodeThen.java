@@ -31,7 +31,8 @@ class JaxRsStatusCodeThen implements Then {
 	}
 
 	@Override
-	public MethodVisitor<Then> apply(SingleContractMetadata metadata) {
+	public MethodVisitor<Then> apply(SingleContractMetadata metadata,
+			SingleMethodBuilder methodBuilder) {
 		Response response = metadata.getContract().getResponse();
 		this.blockBuilder
 				.addIndented(this.comparisonBuilder.assertThat("response.getStatus()",

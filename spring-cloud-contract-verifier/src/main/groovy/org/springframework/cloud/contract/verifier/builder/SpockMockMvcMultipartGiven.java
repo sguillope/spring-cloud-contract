@@ -44,7 +44,8 @@ class SpockMockMvcMultipartGiven implements Given {
 	}
 
 	@Override
-	public MethodVisitor<Given> apply(SingleContractMetadata metadata) {
+	public MethodVisitor<Given> apply(SingleContractMetadata metadata,
+			SingleMethodBuilder methodBuilder) {
 		getMultipartParameters(metadata).entrySet().forEach(entry -> this.blockBuilder
 				.addLine(getMultipartParameterLine(metadata, entry)));
 		return this;

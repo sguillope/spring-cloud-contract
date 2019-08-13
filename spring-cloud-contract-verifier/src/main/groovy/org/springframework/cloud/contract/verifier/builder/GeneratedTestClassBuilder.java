@@ -19,7 +19,8 @@ package org.springframework.cloud.contract.verifier.builder;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.stream.Collectors;
+
+import static org.springframework.cloud.contract.verifier.util.NamesUtil.capitalize;
 
 /**
  * A generated test class consists of the class meta data (e.g. packages, imports) fields
@@ -27,6 +28,7 @@ import java.util.stream.Collectors;
  *
  * @author Olga Maciaszek-Sharma
  * @author Marcin Grzejszczak
+ * @author Tim Ysewyn
  * @since 2.2.0
  */
 class GeneratedTestClassBuilder {
@@ -39,7 +41,7 @@ class GeneratedTestClassBuilder {
 
 	private List<ClassAnnotation> annotations = new LinkedList<>();
 
-	private ClassBodyBuilder classBodyBuilder;
+	private List<Fields> fields = new LinkedList<>();
 
 	final BlockBuilder blockBuilder;
 
@@ -111,13 +113,29 @@ class GeneratedTestClassBuilder {
 	}
 
 	GeneratedTestClassBuilder classAnnotations(ClassAnnotation... annotations) {
-		List<ClassAnnotation> classAnnotations = Arrays.asList(annotations);
-		this.annotations.addAll(classAnnotations);
+		return classAnnotations(Arrays.asList(annotations));
+	}
+
+	GeneratedTestClassBuilder classAnnotations(List<ClassAnnotation> annotations) {
+		this.annotations.addAll(annotations);
 		return this;
 	}
 
-	GeneratedTestClassBuilder classBodyBuilder(ClassBodyBuilder classBodyBuilder) {
-		this.classBodyBuilder = classBodyBuilder;
+	FieldsBuilder fields() {
+		return new FieldsBuilder(this);
+	}
+
+	GeneratedTestClassBuilder field(Fields fields) {
+		this.fields.add(fields);
+		return this;
+	}
+
+	GeneratedTestClassBuilder fields(Fields... fields) {
+		return fields(Arrays.asList(fields));
+	}
+
+	GeneratedTestClassBuilder fields(List<Fields> fields) {
+		this.fields.addAll(fields);
 		return this;
 	}
 
@@ -131,54 +149,26 @@ class GeneratedTestClassBuilder {
 		ClassMetaData classMetaData = this.metaData.stream().filter(Acceptor::accept)
 				.findFirst().orElseThrow(() -> new IllegalStateException(
 						"There is no matching class meta data"));
-		classMetaData.setupLineEnding().setupLabelPrefix()
-				// package com.example
-				.packageDefinition();
-		// \n
-		this.blockBuilder.addEmptyLine();
-		// import ... \n
-		visitSeparated(this.imports);
-		// import static ... \n
-		visitSeparated(this.staticImports);
-		// @Test ... \n
-		visitWithNoEnding(this.annotations);
 		// @formatter:off
-		// public
-		this.blockBuilder.append(classMetaData::modifier)
-				.addAtTheEndIfEndsWithAChar(" ")
-				// class
-				.append("class")
-				// Foo
-				.appendWithSpace(classMetaData::className)
-				// Spec
-				.append(classMetaData::suffix)
-				// extends Parent
-				.appendWithSpace(classMetaData::parentClass);
-		// public class FooSpec extends Parent
+		classMetaData.setupLineEnding()
+				.setupLabelPrefix()
+				.classDefinition()
+					.setupImports(this.imports)
+					.setStaticImports(this.staticImports)
+					.setupAnnotations(this.annotations)
+					.build()
+				.classBody()
+					.setupFields(this.fields)
+					.build();
 		// @formatter:on
-		this.classBodyBuilder.build();
-		return new GeneratedTestClass(this.blockBuilder);
-	}
-
-	void visitSeparated(List<? extends Visitor> list) {
-		visit(list, true, true);
-	}
-
-	void visitWithNoEnding(List<? extends Visitor> list) {
-		visit(list, false, false);
-	}
-
-	private void visit(List<? extends Visitor> list, boolean addEnding,
-			boolean separated) {
-		List<Visitor> elements = list.stream().filter(Acceptor::accept)
-				.collect(Collectors.toList());
-		elements.forEach(OurCallable::call);
-		if (addEnding) {
-			this.blockBuilder.addEndingIfNotPresent();
+		String classFileName = capitalize(
+				this.generatedClassMetaData.generatedClassData.className);
+		String classFileSuffix = classMetaData.getClassNameSuffix();
+		if (!classFileName.endsWith(classFileSuffix)) {
+			classFileName += classFileSuffix;
 		}
-		if (!elements.isEmpty() && separated) {
-			this.blockBuilder.addEmptyLine();
-		}
+		classFileName += classMetaData.getFileExtension();
+		return new GeneratedTestClass(classFileName, this.blockBuilder.toString());
 	}
 
 }

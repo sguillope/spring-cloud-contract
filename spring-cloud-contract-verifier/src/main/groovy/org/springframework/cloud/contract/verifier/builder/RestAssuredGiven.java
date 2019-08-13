@@ -52,20 +52,23 @@ class RestAssuredGiven implements Given, BodyMethodVisitor {
 	}
 
 	@Override
-	public MethodVisitor<Given> apply(SingleContractMetadata singleContractMetadata) {
+	public MethodVisitor<Given> apply(SingleContractMetadata singleContractMetadata,
+			SingleMethodBuilder methodBuilder) {
 		startBodyBlock(this.blockBuilder, "given:");
-		addRequestGivenLine(singleContractMetadata);
-		indentedBodyBlock(this.blockBuilder, this.bodyGivens, singleContractMetadata);
+		addRequestGivenLine(singleContractMetadata, methodBuilder);
+		indentedBodyBlock(this.blockBuilder, this.bodyGivens, singleContractMetadata,
+				methodBuilder);
 		this.blockBuilder.addEmptyLine();
 		return this;
 	}
 
-	private void addRequestGivenLine(SingleContractMetadata singleContractMetadata) {
+	private void addRequestGivenLine(SingleContractMetadata singleContractMetadata,
+			SingleMethodBuilder methodBuilder) {
 		this.requestGivens.stream().filter(given -> given.accept(singleContractMetadata))
 				.findFirst()
 				.orElseThrow(() -> new IllegalStateException(
 						"No matching request building Given implementation for Rest Assured"))
-				.apply(singleContractMetadata);
+				.apply(singleContractMetadata, methodBuilder);
 	}
 
 	@Override

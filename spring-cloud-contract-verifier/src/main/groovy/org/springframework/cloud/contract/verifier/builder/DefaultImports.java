@@ -16,30 +16,25 @@
 
 package org.springframework.cloud.contract.verifier.builder;
 
-import org.springframework.util.StringUtils;
+import java.util.Collections;
+import java.util.List;
 
 class DefaultImports implements Imports, DefaultBaseClassProvider {
-
-	private final BlockBuilder blockBuilder;
 
 	private final GeneratedClassMetaData generatedClassMetaData;
 
 	private final BaseClassProvider baseClassProvider;
 
-	DefaultImports(BlockBuilder blockBuilder,
-			GeneratedClassMetaData generatedClassMetaData) {
-		this.blockBuilder = blockBuilder;
+	DefaultImports(GeneratedClassMetaData generatedClassMetaData) {
 		this.generatedClassMetaData = generatedClassMetaData;
 		this.baseClassProvider = new BaseClassProvider();
 	}
 
 	@Override
-	public Imports call() {
+	public List<String> fqns() {
 		String fqnBaseClass = fqnBaseClass();
-		if (StringUtils.hasText(fqnBaseClass)) {
-			this.blockBuilder.addLineWithEnding("import " + fqnBaseClass);
-		}
-		return this;
+		return fqnBaseClass == null ? Collections.emptyList()
+				: Collections.singletonList(fqnBaseClass);
 	}
 
 	@Override

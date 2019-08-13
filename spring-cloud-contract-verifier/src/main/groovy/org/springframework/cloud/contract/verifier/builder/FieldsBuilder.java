@@ -16,23 +16,31 @@
 
 package org.springframework.cloud.contract.verifier.builder;
 
-import org.springframework.cloud.contract.verifier.config.TestFramework;
-import org.springframework.cloud.contract.verifier.file.SingleContractMetadata;
+import java.util.List;
 
-class JavaJaxRsWhen extends JaxRsWhen {
+class FieldsBuilder {
+
+	private final GeneratedTestClassBuilder parentBuilder;
 
 	private final GeneratedClassMetaData metaData;
 
-	JavaJaxRsWhen(BlockBuilder blockBuilder,
-			GeneratedClassMetaData generatedClassMetaData) {
-		super(blockBuilder, generatedClassMetaData, JaxRsBodyParser.INSTANCE);
-		this.metaData = generatedClassMetaData;
+	FieldsBuilder(GeneratedTestClassBuilder generatedTestClassBuilder) {
+		this.parentBuilder = generatedTestClassBuilder;
+		this.metaData = parentBuilder.generatedClassMetaData;
 	}
 
-	@Override
-	public boolean accept(SingleContractMetadata singleContractMetadata) {
-		return super.accept(singleContractMetadata) && this.metaData.configProperties
-				.getTestFramework() != TestFramework.SPOCK;
+	FieldsBuilder messaging() {
+		this.parentBuilder.field(new MessagingFields(this.metaData));
+		return this;
+	}
+
+	FieldsBuilder custom(List<Fields> fields) {
+		this.parentBuilder.fields(fields);
+		return this;
+	}
+
+	GeneratedTestClassBuilder build() {
+		return this.parentBuilder;
 	}
 
 }

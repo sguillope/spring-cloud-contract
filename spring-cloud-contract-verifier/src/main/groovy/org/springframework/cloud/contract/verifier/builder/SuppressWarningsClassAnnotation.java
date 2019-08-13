@@ -16,22 +16,11 @@
 
 package org.springframework.cloud.contract.verifier.builder;
 
-import java.util.Arrays;
-
 class SuppressWarningsClassAnnotation implements ClassAnnotation {
 
-	private final BlockBuilder blockBuilder;
-
-	private static final String[] ANNOTATIONS = { "@SuppressWarnings(\"rawtypes\")" };
-
-	SuppressWarningsClassAnnotation(BlockBuilder blockBuilder) {
-		this.blockBuilder = blockBuilder;
-	}
-
 	@Override
-	public ClassAnnotation call() {
-		Arrays.stream(ANNOTATIONS).forEach(this.blockBuilder::addLine);
-		return this;
+	public String annotation() {
+		return "@SuppressWarnings(\"rawtypes\")";
 	}
 
 	@Override

@@ -32,7 +32,8 @@ class MockMvcCookiesGiven implements Given {
 	}
 
 	@Override
-	public MethodVisitor<Given> apply(SingleContractMetadata metadata) {
+	public MethodVisitor<Given> apply(SingleContractMetadata metadata,
+			SingleMethodBuilder methodBuilder) {
 		processInput(metadata.getContract().getRequest());
 		return this;
 	}

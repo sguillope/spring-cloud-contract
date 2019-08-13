@@ -17,12 +17,11 @@
 package org.springframework.cloud.contract.verifier.builder;
 
 import java.util.Arrays;
+import java.util.List;
 
 import org.springframework.cloud.contract.verifier.config.TestMode;
 
 class MockMvcRestAssuredImports implements Imports, RestAssuredVerifier {
-
-	private final BlockBuilder blockBuilder;
 
 	private final GeneratedClassMetaData generatedClassMetaData;
 
@@ -35,18 +34,14 @@ class MockMvcRestAssuredImports implements Imports, RestAssuredVerifier {
 			"io.restassured.module.mockmvc.specification.MockMvcRequestSpecification",
 			"io.restassured.response.ResponseOptions" };
 
-	MockMvcRestAssuredImports(BlockBuilder blockBuilder,
-			GeneratedClassMetaData generatedClassMetaData) {
-		this.blockBuilder = blockBuilder;
+	MockMvcRestAssuredImports(GeneratedClassMetaData generatedClassMetaData) {
 		this.generatedClassMetaData = generatedClassMetaData;
 	}
 
 	@Override
-	public Imports call() {
-		Arrays.stream(
-				isRestAssured2Present() ? REST_ASSURED_2_IMPORTS : REST_ASSURED_3_IMPORTS)
-				.forEach(s -> this.blockBuilder.addLineWithEnding("import " + s));
-		return this;
+	public List<String> fqns() {
+		return Arrays.asList(isRestAssured2Present() ? REST_ASSURED_2_IMPORTS
+				: REST_ASSURED_3_IMPORTS);
 	}
 
 	@Override

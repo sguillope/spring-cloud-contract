@@ -1,6 +1,5 @@
 package org.springframework.cloud.contract.verifier.builder;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -13,6 +12,7 @@ import org.springframework.cloud.contract.verifier.util.xml.XmlToXPathsConverter
 
 /**
  * @author Olga Maciaszek-Sharma
+ * @author Tim Ysewyn
  * @since 2.1.0
  */
 class XmlBodyVerificationBuilder implements BodyMethodGeneration {
@@ -26,10 +26,11 @@ class XmlBodyVerificationBuilder implements BodyMethodGeneration {
 		this.lineSuffix = lineSuffix;
 	}
 
-	void addXmlResponseBodyCheck(BlockBuilder blockBuilder, Object responseBody,
+	void addXmlResponseBodyCheck(BlockBuilder blockBuilder,
+			SingleMethodBuilder methodBuilder, Object responseBody,
 			BodyMatchers bodyMatchers, String responseString,
 			boolean shouldCommentOutBDDBlocks) {
-		addXmlProcessingLines(blockBuilder, responseString);
+		addXmlProcessingLines(blockBuilder, methodBuilder, responseString);
 		Object processedBody = XmlToXPathsConverter.removeMatchingXPaths(responseBody,
 				bodyMatchers);
 		List<BodyMatcher> matchers = new XmlToXPathsConverter()
@@ -43,15 +44,20 @@ class XmlBodyVerificationBuilder implements BodyMethodGeneration {
 	}
 
 	private void addXmlProcessingLines(final BlockBuilder blockBuilder,
-			String responseString) {
-		Arrays.asList(
-				"DocumentBuilder documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder()",
-				"Document parsedXml = documentBuilder.parse(new InputSource(new StringReader("
-						+ responseString + ")))")
-				.forEach(it -> {
-					blockBuilder.addLine(it);
-					addColonIfRequired(lineSuffix, blockBuilder);
-				});
+			SingleMethodBuilder methodBuilder, String responseString) {
+		methodBuilder.variable("documentBuilder", "DocumentBuilder");
+		blockBuilder
+				.appendWithSpace(
+						"= DocumentBuilderFactory.newInstance().newDocumentBuilder()")
+				.addEndingIfNotPresent().addEmptyLine();
+		methodBuilder.variable("parsedXml", "Document");
+		String value = KotlinClassMetaData.hasKotlinSupport()
+				? "documentBuilder.parse(InputSource(StringReader(" + responseString
+						+ ")))"
+				: "documentBuilder.parse(new InputSource(new StringReader("
+						+ responseString + ")))";
+		blockBuilder.appendWithSpace("=").appendWithSpace(value).addEndingIfNotPresent()
+				.addEmptyLine();
 	}
 
 	@Override

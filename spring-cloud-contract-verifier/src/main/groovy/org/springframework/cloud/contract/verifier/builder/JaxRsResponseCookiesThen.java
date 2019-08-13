@@ -23,23 +23,20 @@ class JaxRsResponseCookiesThen implements Then, MockMvcAcceptor, CookieElementPr
 
 	private final BlockBuilder blockBuilder;
 
-	private final GeneratedClassMetaData generatedClassMetaData;
-
 	private final ComparisonBuilder comparisonBuilder;
 
 	private final BodyParser bodyParser;
 
 	JaxRsResponseCookiesThen(BlockBuilder blockBuilder,
-			GeneratedClassMetaData generatedClassMetaData,
 			ComparisonBuilder comparisonBuilder) {
 		this.blockBuilder = blockBuilder;
-		this.generatedClassMetaData = generatedClassMetaData;
 		this.comparisonBuilder = comparisonBuilder;
 		this.bodyParser = comparisonBuilder.bodyParser();
 	}
 
 	@Override
-	public MethodVisitor<Then> apply(SingleContractMetadata metadata) {
+	public MethodVisitor<Then> apply(SingleContractMetadata metadata,
+			SingleMethodBuilder methodBuilder) {
 		processCookies(metadata);
 		return this;
 	}

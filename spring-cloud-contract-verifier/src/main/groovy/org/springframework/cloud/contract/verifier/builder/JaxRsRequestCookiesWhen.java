@@ -37,7 +37,8 @@ class JaxRsRequestCookiesWhen implements When {
 	}
 
 	@Override
-	public MethodVisitor<When> apply(SingleContractMetadata metadata) {
+	public MethodVisitor<When> apply(SingleContractMetadata metadata,
+			SingleMethodBuilder methodBuilder) {
 		appendCookies(metadata.getContract().getRequest());
 		return this;
 	}

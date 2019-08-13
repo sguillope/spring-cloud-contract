@@ -16,23 +16,12 @@
 
 package org.springframework.cloud.contract.verifier.builder;
 
-import org.springframework.cloud.contract.verifier.config.TestFramework;
-import org.springframework.cloud.contract.verifier.file.SingleContractMetadata;
-
-class SpockMessagingGiven extends MessagingGiven {
-
-	private final GeneratedClassMetaData generatedClassMetaData;
-
-	SpockMessagingGiven(BlockBuilder blockBuilder,
-			GeneratedClassMetaData generatedClassMetaData) {
-		super(blockBuilder, generatedClassMetaData, SpockMessagingBodyParser.INSTANCE);
-		this.generatedClassMetaData = generatedClassMetaData;
-	}
+interface StaticImports extends Imports {
 
 	@Override
-	public boolean accept(SingleContractMetadata metadata) {
-		return super.accept(metadata) && this.generatedClassMetaData.configProperties
-				.getTestFramework() == TestFramework.SPOCK;
+	default ClassBuilder apply(ClassBuilder classBuilder) {
+		fqns().forEach(classBuilder::writeStaticImport);
+		return classBuilder;
 	}
 
 }

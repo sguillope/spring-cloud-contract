@@ -32,7 +32,8 @@ class RestAssuredCookiesThen implements Then, MockMvcAcceptor, CookieElementProc
 	}
 
 	@Override
-	public MethodVisitor<Then> apply(SingleContractMetadata metadata) {
+	public MethodVisitor<Then> apply(SingleContractMetadata metadata,
+			SingleMethodBuilder methodBuilder) {
 		processCookies(metadata);
 		return this;
 	}

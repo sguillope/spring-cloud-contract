@@ -30,7 +30,8 @@ class MessagingHeadersGiven implements Given, MethodVisitor<Given> {
 	}
 
 	@Override
-	public MethodVisitor<Given> apply(SingleContractMetadata metadata) {
+	public MethodVisitor<Given> apply(SingleContractMetadata metadata,
+			SingleMethodBuilder methodBuilder) {
 		Input inputMessage = metadata.getContract().getInput();
 		this.blockBuilder.startBlock().addIndented(", headers()").startBlock();
 		inputMessage.getMessageHeaders().executeForEachHeader(header -> {

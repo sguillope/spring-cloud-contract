@@ -48,15 +48,19 @@ class JaxRsWhen implements When, BodyMethodVisitor, JaxRsAcceptor {
 	}
 
 	@Override
-	public MethodVisitor<When> apply(SingleContractMetadata singleContractMetadata) {
+	public MethodVisitor<When> apply(SingleContractMetadata singleContractMetadata,
+			SingleMethodBuilder methodBuilder) {
 		startBodyBlock(this.blockBuilder, "when:");
-		this.blockBuilder.addIndented("Response response = webTarget");
+		methodBuilder.variable("response", "Response");
+		this.blockBuilder.appendWithSpace("= webTarget");
 		this.blockBuilder.indent();
-		indentedBodyBlock(this.blockBuilder, this.whens, singleContractMetadata);
+		indentedBodyBlock(this.blockBuilder, this.whens, singleContractMetadata,
+				methodBuilder);
 		this.blockBuilder.addEmptyLine().endBlock();
 		if (expectsResponseBody(singleContractMetadata)) {
-			this.blockBuilder.addLineWithEnding(
-					"String responseAsString = " + this.bodyParser.readEntity());
+			methodBuilder.variable("responseAsString", "String");
+			this.blockBuilder.appendWithSpace("= " + this.bodyParser.readEntity())
+					.addEndingIfNotPresent().addEmptyLine();
 		}
 		this.blockBuilder.endBlock();
 		return this;

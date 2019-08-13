@@ -16,40 +16,41 @@
 
 package org.springframework.cloud.contract.verifier.builder;
 
+import java.util.List;
+
 class ClassAnnotationsBuilder {
 
 	private final GeneratedTestClassBuilder parentBuilder;
-
-	private final BlockBuilder builder;
 
 	private final GeneratedClassMetaData metaData;
 
 	ClassAnnotationsBuilder(GeneratedTestClassBuilder generatedTestClassBuilder) {
 		this.parentBuilder = generatedTestClassBuilder;
-		this.builder = generatedTestClassBuilder.blockBuilder;
 		this.metaData = generatedTestClassBuilder.generatedClassMetaData;
 	}
 
 	ClassAnnotationsBuilder defaultAnnotations() {
-		this.parentBuilder.classAnnotations(new SuppressWarningsClassAnnotation(builder));
+		this.parentBuilder.classAnnotations(new SuppressWarningsClassAnnotation());
 		return this;
 	}
 
 	ClassAnnotationsBuilder jUnit4() {
-		this.parentBuilder
-				.classAnnotations(new JUnit4OrderClassAnnotation(builder, metaData));
+		this.parentBuilder.classAnnotations(new JUnit4OrderClassAnnotation(metaData));
 		return this;
 	}
 
 	ClassAnnotationsBuilder jUnit5() {
-		this.parentBuilder
-				.classAnnotations(new JUnit5OrderClassAnnotation(builder, metaData));
+		this.parentBuilder.classAnnotations(new JUnit5OrderClassAnnotation(metaData));
 		return this;
 	}
 
 	ClassAnnotationsBuilder spock() {
-		this.parentBuilder
-				.classAnnotations(new SpockOrderClassAnnotation(builder, metaData));
+		this.parentBuilder.classAnnotations(new SpockOrderClassAnnotation(metaData));
+		return this;
+	}
+
+	ClassAnnotationsBuilder custom(List<ClassAnnotation> customAnnotations) {
+		this.parentBuilder.classAnnotations(customAnnotations);
 		return this;
 	}
 

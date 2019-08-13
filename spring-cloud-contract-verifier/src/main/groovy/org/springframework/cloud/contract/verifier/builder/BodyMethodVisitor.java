@@ -46,7 +46,8 @@ interface BodyMethodVisitor {
 	 */
 	default void indentedBodyBlock(BlockBuilder blockBuilder,
 			List<? extends MethodVisitor> methodVisitors,
-			SingleContractMetadata singleContractMetadata) {
+			SingleContractMetadata singleContractMetadata,
+			SingleMethodBuilder methodBuilder) {
 		List<MethodVisitor> visitors = filterVisitors(methodVisitors,
 				singleContractMetadata);
 		if (visitors.isEmpty()) {
@@ -55,7 +56,7 @@ interface BodyMethodVisitor {
 			return;
 		}
 		blockBuilder.addEmptyLine().indent();
-		applyVisitors(blockBuilder, singleContractMetadata, visitors);
+		applyVisitors(blockBuilder, singleContractMetadata, methodBuilder, visitors);
 		endIndentedBodyBlock(blockBuilder);
 	}
 
@@ -82,14 +83,16 @@ interface BodyMethodVisitor {
 	 */
 	default void bodyBlock(BlockBuilder blockBuilder,
 			List<? extends MethodVisitor> methodVisitors,
-			SingleContractMetadata singleContractMetadata) {
+			SingleContractMetadata singleContractMetadata,
+			SingleMethodBuilder methodBuilder) {
 		List<MethodVisitor> visitors = filterVisitors(methodVisitors,
 				singleContractMetadata);
 		if (visitors.isEmpty()) {
 			blockBuilder.addEndingIfNotPresent().addEmptyLine();
 			return;
 		}
-		applyVisitorsWithEnding(blockBuilder, singleContractMetadata, visitors);
+		applyVisitorsWithEnding(blockBuilder, singleContractMetadata, methodBuilder,
+				visitors);
 		endBodyBlock(blockBuilder);
 	}
 
@@ -100,11 +103,12 @@ interface BodyMethodVisitor {
 	 * @param visitors
 	 */
 	default void applyVisitors(BlockBuilder blockBuilder,
-			SingleContractMetadata singleContractMetadata, List<MethodVisitor> visitors) {
+			SingleContractMetadata singleContractMetadata,
+			SingleMethodBuilder methodBuilder, List<MethodVisitor> visitors) {
 		Iterator<MethodVisitor> iterator = visitors.iterator();
 		while (iterator.hasNext()) {
 			MethodVisitor visitor = iterator.next();
-			visitor.apply(singleContractMetadata);
+			visitor.apply(singleContractMetadata, methodBuilder);
 			if (iterator.hasNext()) {
 				blockBuilder.addEmptyLine();
 			}
@@ -119,11 +123,12 @@ interface BodyMethodVisitor {
 	 * @param visitors
 	 */
 	default void applyVisitorsWithEnding(BlockBuilder blockBuilder,
-			SingleContractMetadata singleContractMetadata, List<MethodVisitor> visitors) {
+			SingleContractMetadata singleContractMetadata,
+			SingleMethodBuilder methodBuilder, List<MethodVisitor> visitors) {
 		Iterator<MethodVisitor> iterator = visitors.iterator();
 		while (iterator.hasNext()) {
 			MethodVisitor visitor = iterator.next();
-			visitor.apply(singleContractMetadata);
+			visitor.apply(singleContractMetadata, methodBuilder);
 			blockBuilder.addEndingIfNotPresent();
 			if (iterator.hasNext()) {
 				blockBuilder.addEmptyLine();

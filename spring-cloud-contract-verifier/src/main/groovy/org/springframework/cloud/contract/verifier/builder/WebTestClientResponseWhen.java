@@ -31,9 +31,10 @@ class WebTestClientResponseWhen implements When, WebTestClientAcceptor {
 	}
 
 	@Override
-	public MethodVisitor<When> apply(SingleContractMetadata metadata) {
-		this.blockBuilder
-				.addIndented("WebTestClientResponse response = given().spec(request)");
+	public MethodVisitor<When> apply(SingleContractMetadata metadata,
+			SingleMethodBuilder methodBuilder) {
+		methodBuilder.variable("response", "WebTestClientResponse");
+		this.blockBuilder.appendWithSpace("= given().spec(request)");
 		return this;
 	}
 

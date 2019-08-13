@@ -46,11 +46,7 @@ class GroovyClassMetaData implements ClassMetaData, DefaultClassMetadata {
 
 	@Override
 	public ClassMetaData suffix() {
-		String suffix = StringUtils.hasText(
-				this.generatedClassMetaData.configProperties.getNameSuffixForTests())
-						? this.generatedClassMetaData.configProperties
-								.getNameSuffixForTests()
-						: "Spec";
+		String suffix = this.getClassNameSuffix();
 		if (!this.blockBuilder.endsWith(suffix)) {
 			this.blockBuilder.addAtTheEnd(suffix);
 		}
@@ -63,10 +59,14 @@ class GroovyClassMetaData implements ClassMetaData, DefaultClassMetadata {
 	}
 
 	@Override
-	public ClassMetaData packageDefinition() {
-		this.blockBuilder.addLineWithEnding(
-				"package " + this.generatedClassMetaData.generatedClassData.classPackage);
-		return this;
+	public ClassBuilder classDefinition() {
+		return GroovyClassBuilder.builder(this);
+	}
+
+	@Override
+	public ClassBodyBuilder classBody() {
+		return GroovyClassBodyBuilder.builder(this.blockBuilder,
+				this.generatedClassMetaData);
 	}
 
 	@Override
@@ -103,6 +103,20 @@ class GroovyClassMetaData implements ClassMetaData, DefaultClassMetadata {
 	public boolean accept() {
 		return this.generatedClassMetaData.configProperties
 				.getTestFramework() == TestFramework.SPOCK;
+	}
+
+	@Override
+	public String getClassNameSuffix() {
+		return StringUtils.hasText(
+				this.generatedClassMetaData.configProperties.getNameSuffixForTests())
+						? this.generatedClassMetaData.configProperties
+								.getNameSuffixForTests()
+						: "Spec";
+	}
+
+	@Override
+	public String getFileExtension() {
+		return ".groovy";
 	}
 
 }

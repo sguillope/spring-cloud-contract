@@ -25,6 +25,7 @@ import org.springframework.cloud.contract.verifier.file.SingleContractMetadata;
 import org.springframework.cloud.contract.verifier.util.MapConverter;
 
 import static org.springframework.cloud.contract.verifier.util.ContentUtils.getJavaMultipartFileParameterContent;
+import static org.springframework.cloud.contract.verifier.util.ContentUtils.getKotlinMultipartFileParameterContent;
 
 class MockMvcMultipartGiven implements Given {
 
@@ -45,7 +46,8 @@ class MockMvcMultipartGiven implements Given {
 	}
 
 	@Override
-	public MethodVisitor<Given> apply(SingleContractMetadata metadata) {
+	public MethodVisitor<Given> apply(SingleContractMetadata metadata,
+			SingleMethodBuilder methodBuilder) {
 		getMultipartParameters(metadata).entrySet().forEach(entry -> this.blockBuilder
 				.addLine(getMultipartParameterLine(metadata, entry)));
 		return this;
@@ -68,9 +70,14 @@ class MockMvcMultipartGiven implements Given {
 
 	private String getMultipartFileParameterContent(SingleContractMetadata metadata,
 			String propertyName, NamedProperty propertyValue) {
-		return getJavaMultipartFileParameterContent(propertyName, propertyValue,
-				fileProp -> this.bodyReader.readBytesFromFileString(metadata, fileProp,
-						CommunicationType.REQUEST));
+		// For now, I don't like this :(
+		return KotlinClassMetaData.hasKotlinSupport()
+				? getKotlinMultipartFileParameterContent(propertyName, propertyValue,
+						fileProp -> this.bodyReader.readBytesFromFileString(metadata,
+								fileProp, CommunicationType.REQUEST))
+				: getJavaMultipartFileParameterContent(propertyName, propertyValue,
+						fileProp -> this.bodyReader.readBytesFromFileString(metadata,
+								fileProp, CommunicationType.REQUEST));
 	}
 
 	private String getParameterString(Map.Entry<String, Object> parameter) {

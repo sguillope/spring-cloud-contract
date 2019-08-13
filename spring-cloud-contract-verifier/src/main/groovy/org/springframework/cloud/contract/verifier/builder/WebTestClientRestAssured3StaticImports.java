@@ -17,29 +17,25 @@
 package org.springframework.cloud.contract.verifier.builder;
 
 import java.util.Arrays;
+import java.util.List;
 
 import org.springframework.cloud.contract.verifier.config.TestMode;
 
-class WebTestClientRestAssured3StaticImports implements Imports {
-
-	private final BlockBuilder blockBuilder;
+class WebTestClientRestAssured3StaticImports implements StaticImports {
 
 	private final GeneratedClassMetaData generatedClassMetaData;
 
 	private static final String[] IMPORTS = {
 			"io.restassured.module.webtestclient.RestAssuredWebTestClient.*" };
 
-	WebTestClientRestAssured3StaticImports(BlockBuilder blockBuilder,
+	WebTestClientRestAssured3StaticImports(
 			GeneratedClassMetaData generatedClassMetaData) {
-		this.blockBuilder = blockBuilder;
 		this.generatedClassMetaData = generatedClassMetaData;
 	}
 
 	@Override
-	public Imports call() {
-		Arrays.stream(IMPORTS)
-				.forEach(s -> this.blockBuilder.addLineWithEnding("import static " + s));
-		return this;
+	public List<String> fqns() {
+		return Arrays.asList(IMPORTS);
 	}
 
 	@Override

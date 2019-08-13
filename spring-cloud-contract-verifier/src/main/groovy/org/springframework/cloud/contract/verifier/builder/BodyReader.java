@@ -41,7 +41,8 @@ class BodyReader {
 
 	String readStringFromFileString(SingleContractMetadata metadata,
 			FromFileProperty property, CommunicationType side) {
-		return "new String(" + readBytesFromFileString(metadata, property, side) + ")";
+		return (KotlinClassMetaData.hasKotlinSupport() ? "" : "new ") + "String("
+				+ readBytesFromFileString(metadata, property, side) + ")";
 	}
 
 	private String byteBodyToAFileForTestMethod(SingleContractMetadata metadata,
@@ -50,11 +51,11 @@ class BodyReader {
 				this.generatedClassMetaData.generatedClassData, metadata.methodName());
 		String newFileName = classDataForMethod.getMethodName() + "_"
 				+ side.name().toLowerCase() + "_" + property.fileName();
-		java.nio.file.Path parent = classDataForMethod.testClassPath().getParent();
-		if (parent == null) {
-			parent = classDataForMethod.testClassPath();
+		File testDir = classDataForMethod.testClassPath().toFile();
+		if (testDir.isFile()) {
+			testDir = testDir.getParentFile();
 		}
-		File newFile = new File(parent.toFile(), newFileName);
+		File newFile = new File(testDir, newFileName);
 		// for IDE
 		try {
 			Files.write(newFile.toPath(), property.asBytes());

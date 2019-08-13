@@ -17,29 +17,24 @@
 package org.springframework.cloud.contract.verifier.builder;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import org.springframework.cloud.contract.verifier.file.SingleContractMetadata;
 
-class MessagingFields implements Field {
-
-	private final BlockBuilder blockBuilder;
+class MessagingFields implements Fields {
 
 	private final GeneratedClassMetaData generatedClassMetaData;
 
-	private static final String[] FIELDS = {
-			"@Inject ContractVerifierMessaging contractVerifierMessaging",
-			"@Inject ContractVerifierObjectMapper contractVerifierObjectMapper" };
+	private static final Field[] FIELDS = {
+			new Field(Collections.singletonList("Inject"), "ContractVerifierMessaging",
+					"contractVerifierMessaging")
+							.withParameterizedTypes(Collections.singletonList("Object")),
+			new Field(Collections.singletonList("Inject"), "ContractVerifierObjectMapper",
+					"contractVerifierObjectMapper") };
 
-	MessagingFields(BlockBuilder blockBuilder,
-			GeneratedClassMetaData generatedClassMetaData) {
-		this.blockBuilder = blockBuilder;
+	MessagingFields(GeneratedClassMetaData generatedClassMetaData) {
 		this.generatedClassMetaData = generatedClassMetaData;
-	}
-
-	@Override
-	public Field call() {
-		Arrays.stream(FIELDS).forEach(this.blockBuilder::addLineWithEnding);
-		return this;
 	}
 
 	@Override
@@ -47,6 +42,11 @@ class MessagingFields implements Field {
 		return this.generatedClassMetaData.listOfFiles.stream()
 				.anyMatch(metadata -> metadata.getConvertedContractWithMetadata().stream()
 						.anyMatch(SingleContractMetadata::isMessaging));
+	}
+
+	@Override
+	public List<Field> fields() {
+		return Arrays.asList(FIELDS);
 	}
 
 }

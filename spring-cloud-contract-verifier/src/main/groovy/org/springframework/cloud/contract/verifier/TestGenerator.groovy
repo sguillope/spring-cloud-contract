@@ -44,6 +44,7 @@ import static org.springframework.cloud.contract.verifier.util.NamesUtil.directo
 import static org.springframework.cloud.contract.verifier.util.NamesUtil.toLastDot
 /**
  * @author Jakub Kubrynski, codearte.io
+ * @author Tim Ysewyn
  */
 @CompileStatic
 class TestGenerator {
@@ -157,24 +158,20 @@ class TestGenerator {
 			log.debug("Collected contracts with metadata ${contracts} relative path is [${includedDirectoryRelativePath}]")
 		}
 		if (contracts.size()) {
-			def className = afterLast(includedDirectoryRelativePath.toString(), File.separator) + resolveNameSuffix()
+			def className = afterLast(includedDirectoryRelativePath.toString(), File.separator)
 			def convertedClassName = convertIllegalPackageChars(className)
 			def packageName =
 					buildPackage(basePackageNameForClass, includedDirectoryRelativePath)
 			Path dir = saver.generateTestBaseDir(basePackageNameForClass,
 					convertIllegalPackageChars(includedDirectoryRelativePath.toString()))
-			Path classPath = saver.pathToClass(dir, convertedClassName)
-			def classBytes = generator.
-					buildClass(configProperties, contracts, includedDirectoryRelativePath,
-							new SingleTestGenerator.GeneratedClassData(convertedClassName, packageName, classPath)).
-					getBytes(StandardCharsets.UTF_8)
+			def generatedTestClass = generator.
+					generateClass(configProperties, contracts, includedDirectoryRelativePath,
+							new SingleTestGenerator.GeneratedClassData(convertedClassName, packageName, dir))
+			Path classPath = saver.pathToClass(dir, generatedTestClass.fileName())
+			def classBytes = generatedTestClass.content().getBytes(StandardCharsets.UTF_8)
 			saver.saveClassFile(classPath, classBytes)
 			counter.incrementAndGet()
 		}
-	}
-
-	private String resolveNameSuffix() {
-		return configProperties.nameSuffixForTests ?: configProperties.testFramework.classNameSuffix
 	}
 
 	protected static String buildPackage(final String packageNameForClass, final String includedDirectoryRelativePath) {

@@ -16,8 +16,13 @@
 
 package org.springframework.cloud.contract.verifier.builder;
 
-interface OurCallable<T> {
+/**
+ * @author Tim Ysewyn
+ */
+public class GeneratedTestClassMother {
 
-	T call();
+	public static GeneratedTestClass generatedTestClass(String fileName, String content) {
+		return new GeneratedTestClass(fileName, content);
+	}
 
 }

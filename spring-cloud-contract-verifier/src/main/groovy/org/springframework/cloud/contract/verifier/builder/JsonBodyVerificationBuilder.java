@@ -81,10 +81,10 @@ class JsonBodyVerificationBuilder implements BodyMethodGeneration, ClassVerifier
 		this.postProcessJsonPathCall = postProcessJsonPathCall;
 	}
 
-	Object addJsonResponseBodyCheck(BlockBuilder bb, Object convertedResponseBody,
-			BodyMatchers bodyMatchers, String responseString,
-			boolean shouldCommentOutBDDBlocks) {
-		appendJsonPath(bb, responseString);
+	Object addJsonResponseBodyCheck(BlockBuilder bb, SingleMethodBuilder methodBuilder,
+			Object convertedResponseBody, BodyMatchers bodyMatchers,
+			String responseString, boolean shouldCommentOutBDDBlocks) {
+		appendJsonPath(bb, methodBuilder, responseString);
 		DocumentContext parsedRequestBody = null;
 		boolean dontParseStrings = convertedResponseBody instanceof Map;
 		Closure parsingClosure = dontParseStrings ? Closure.IDENTITY
@@ -128,9 +128,13 @@ class JsonBodyVerificationBuilder implements BodyMethodGeneration, ClassVerifier
 	}
 
 	private void checkType(BlockBuilder bb, BodyMatcher it, Object elementFromBody) {
-		String method = "assertThat((Object) parsedJson.read("
-				+ quotedAndEscaped(it.path()) + ")).isInstanceOf("
-				+ classToCheck(elementFromBody).getName() + ".class)";
+		String classToCheck = classToCheck(elementFromBody).getName()
+				+ (KotlinClassMetaData.hasKotlinSupport() ? "::class.java" : ".class");
+		String method = "assertThat("
+				+ castJsonPathToClass(
+						"parsedJson.read(" + quotedAndEscaped(it.path()) + ")",
+						(KotlinClassMetaData.hasKotlinSupport() ? "Any" : "Object"))
+				+ ").isInstanceOf(" + classToCheck + ")";
 		bb.addLine(postProcessJsonPathCall.apply(method));
 		addColonIfRequired(lineSuffix, bb);
 	}
@@ -156,9 +160,14 @@ class JsonBodyVerificationBuilder implements BodyMethodGeneration, ClassVerifier
 
 	protected void buildCustomMatchingConditionForEachElement(BlockBuilder bb,
 			String path, String valueAsParam) {
-		String method = "assertThat((java.lang.Iterable) parsedJson.read(" + path
-				+ ", java.util.Collection.class)).as(" + path + ").allElementsMatch("
-				+ valueAsParam + ")";
+		String classToCastTo = "java.util.Collection"
+				+ (KotlinClassMetaData.hasKotlinSupport() ? "::class.java" : ".class");
+		String method = "assertThat("
+				+ castJsonPathToClass(
+						"parsedJson.read(" + path + ", " + classToCastTo + ")",
+						(KotlinClassMetaData.hasKotlinSupport() ? "Iterable<*>"
+								: "java.lang.Iterable"))
+				+ ").as(" + path + ").allElementsMatch(" + valueAsParam + ")";
 		bb.addLine(postProcessJsonPathCall.apply(method));
 	}
 
@@ -179,7 +188,9 @@ class JsonBodyVerificationBuilder implements BodyMethodGeneration, ClassVerifier
 		else {
 			String comparisonMethod = bodyMatcher.matchingType() == MatchingType.EQUALITY
 					? "isEqualTo" : "matches";
-			String classToCastTo = retrievedValue.getClass().getSimpleName() + ".class";
+			String classToCastTo = retrievedValue.getClass().getSimpleName()
+					+ (KotlinClassMetaData.hasKotlinSupport() ? "::class.java"
+							: ".class");
 			String method = "assertThat(parsedJson.read(" + path + ", " + classToCastTo
 					+ "))." + comparisonMethod + "(" + valueAsParam + ")";
 			bb.addLine(postProcessJsonPathCall.apply(method));
@@ -228,8 +239,10 @@ class JsonBodyVerificationBuilder implements BodyMethodGeneration, ClassVerifier
 	@Override
 	public void methodForNullCheck(BodyMatcher bodyMatcher, BlockBuilder bb) {
 		String quotedAndEscapedPath = quotedAndEscaped(bodyMatcher.path());
-		String method = "assertThat((Object) parsedJson.read(" + quotedAndEscapedPath
-				+ ")).isNull()";
+		String method = "assertThat("
+				+ castJsonPathToClass("parsedJson.read(" + quotedAndEscapedPath + ")",
+						(KotlinClassMetaData.hasKotlinSupport() ? "Any" : "Object"))
+				+ ").isNull()";
 		bb.addLine(postProcessJsonPathCall.apply(method));
 		addColonIfRequired(lineSuffix, bb);
 	}
@@ -246,9 +259,17 @@ class JsonBodyVerificationBuilder implements BodyMethodGeneration, ClassVerifier
 				|| bodyMatcher.maxTypeOccurrence() != null) {
 			checkType(bb, bodyMatcher, elementFromBody);
 			String quotedAndEscaptedPath = quotedAndEscaped(bodyMatcher.path());
-			String method = "assertThat((java.lang.Iterable) parsedJson.read("
-					+ quotedAndEscaptedPath + ", java.util.Collection.class))."
-					+ sizeCheckMethod(bodyMatcher, quotedAndEscaptedPath);
+			String classToCastTo = "java.util.Collection"
+					+ (KotlinClassMetaData.hasKotlinSupport() ? "::class.java"
+							: ".class");
+
+			String method = "assertThat("
+					+ castJsonPathToClass(
+							"parsedJson.read(" + quotedAndEscaptedPath + ", "
+									+ classToCastTo + ")",
+							(KotlinClassMetaData.hasKotlinSupport() ? "Iterable<*>"
+									: "java.lang.Iterable"))
+					+ ")." + sizeCheckMethod(bodyMatcher, quotedAndEscaptedPath);
 			bb.addLine(postProcessJsonPathCall.apply(method));
 			addColonIfRequired(lineSuffix, bb);
 		}
@@ -337,8 +358,11 @@ class JsonBodyVerificationBuilder implements BodyMethodGeneration, ClassVerifier
 	/**
 	 * Appends to {@link BlockBuilder} parsing of the JSON Path document
 	 */
-	private void appendJsonPath(BlockBuilder blockBuilder, String json) {
-		blockBuilder.addLine("DocumentContext parsedJson = JsonPath.parse(" + json + ")");
+	private void appendJsonPath(BlockBuilder blockBuilder,
+			SingleMethodBuilder methodBuilder, String json) {
+		methodBuilder.variable("parsedJson", "DocumentContext");
+		blockBuilder.appendWithSpace("= JsonPath.parse(" + json + ")")
+				.addEndingIfNotPresent().addEmptyLine();
 		addColonIfRequired(lineSuffix, blockBuilder);
 	}
 
@@ -358,6 +382,11 @@ class JsonBodyVerificationBuilder implements BodyMethodGeneration, ClassVerifier
 			addBodyMatchingBlock(bodyMatchers.matchers(), bb, responseBody,
 					shouldCommentOutBDDBlocks);
 		}
+	}
+
+	private String castJsonPathToClass(String jsonPath, String clazz) {
+		return KotlinClassMetaData.hasKotlinSupport() ? jsonPath + " as " + clazz
+				: "(" + clazz + ") " + jsonPath;
 	}
 
 }

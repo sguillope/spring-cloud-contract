@@ -16,6 +16,15 @@
 
 package org.springframework.cloud.contract.verifier.builder;
 
-interface ClassAnnotation extends Visitor<ClassAnnotation> {
+import java.util.function.Function;
+
+interface ClassAnnotation extends Acceptor, Function<ClassBuilder, ClassBuilder> {
+
+	String annotation();
+
+	@Override
+	default ClassBuilder apply(ClassBuilder classBuilder) {
+		return classBuilder.writeAnnotation(annotation());
+	}
 
 }

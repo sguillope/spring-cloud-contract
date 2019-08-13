@@ -37,7 +37,8 @@ class JUnit4IgnoreMethodAnnotation implements MethodAnnotations {
 
 	@Override
 	public MethodVisitor<MethodAnnotations> apply(
-			SingleContractMetadata singleContractMetadata) {
+			SingleContractMetadata singleContractMetadata,
+			SingleMethodBuilder methodBuilder) {
 		Arrays.stream(ANNOTATIONS).forEach(this.blockBuilder::addIndented);
 		return this;
 	}

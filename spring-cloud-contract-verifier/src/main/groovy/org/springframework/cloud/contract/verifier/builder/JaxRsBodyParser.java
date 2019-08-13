@@ -22,7 +22,9 @@ interface JaxRsBodyParser extends BodyParser {
 	};
 
 	default String readEntity() {
-		return "response.readEntity(String.class)";
+		String classToCastTo = "String"
+				+ (KotlinClassMetaData.hasKotlinSupport() ? "::class.java" : ".class");
+		return "response.readEntity(" + classToCastTo + ")";
 	}
 
 	default String responseAsString() {
@@ -30,7 +32,9 @@ interface JaxRsBodyParser extends BodyParser {
 	}
 
 	default String byteArrayString() {
-		return "response.readEntity(byte[].class)";
+		String classToCastTo = (KotlinClassMetaData.hasKotlinSupport()
+				? "ByteArray::class" : "byte[].class");
+		return "response.readEntity(" + classToCastTo + ")";
 	}
 
 }

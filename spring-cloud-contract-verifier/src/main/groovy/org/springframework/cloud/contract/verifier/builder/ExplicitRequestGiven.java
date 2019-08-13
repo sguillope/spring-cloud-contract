@@ -30,8 +30,10 @@ class ExplicitRequestGiven implements Given, ExplicitAcceptor {
 	}
 
 	@Override
-	public MethodVisitor<Given> apply(SingleContractMetadata metadata) {
-		this.blockBuilder.addIndented("RequestSpecification request = given()");
+	public MethodVisitor<Given> apply(SingleContractMetadata metadata,
+			SingleMethodBuilder methodBuilder) {
+		methodBuilder.variable("request", "RequestSpecification");
+		this.blockBuilder.appendWithSpace("= given()");
 		return this;
 	}
 

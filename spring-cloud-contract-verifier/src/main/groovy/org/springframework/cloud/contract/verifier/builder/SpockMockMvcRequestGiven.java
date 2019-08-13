@@ -31,8 +31,10 @@ class SpockMockMvcRequestGiven implements Given, MockMvcAcceptor {
 	}
 
 	@Override
-	public MethodVisitor<Given> apply(SingleContractMetadata metadata) {
-		this.blockBuilder.addIndented("def request = given()");
+	public MethodVisitor<Given> apply(SingleContractMetadata metadata,
+			SingleMethodBuilder methodBuilder) {
+		methodBuilder.variable("request", "def");
+		this.blockBuilder.appendWithSpace("= given()");
 		return this;
 	}
 

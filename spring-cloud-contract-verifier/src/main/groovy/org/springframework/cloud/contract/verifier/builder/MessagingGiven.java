@@ -26,28 +26,26 @@ class MessagingGiven implements Given, MethodVisitor<Given>, BodyMethodVisitor {
 
 	private final BlockBuilder blockBuilder;
 
-	private final GeneratedClassMetaData generatedClassMetaData;
-
 	private final List<Given> givens = new LinkedList<>();
 
 	MessagingGiven(BlockBuilder blockBuilder,
 			GeneratedClassMetaData generatedClassMetaData, BodyParser bodyParser) {
 		this.blockBuilder = blockBuilder;
-		this.generatedClassMetaData = generatedClassMetaData;
 		this.givens.addAll(Arrays.asList(
 				new MessagingBodyGiven(this.blockBuilder,
-						new BodyReader(this.generatedClassMetaData), bodyParser),
+						new BodyReader(generatedClassMetaData), bodyParser),
 				new MessagingHeadersGiven(this.blockBuilder)));
 	}
 
 	@Override
-	public MethodVisitor<Given> apply(SingleContractMetadata metadata) {
+	public MethodVisitor<Given> apply(SingleContractMetadata metadata,
+			SingleMethodBuilder methodBuilder) {
 		startBodyBlock(this.blockBuilder, "given:");
-		this.blockBuilder.addIndented(
-				"ContractVerifierMessage inputMessage = contractVerifierMessaging.create(")
+		methodBuilder.variable("inputMessage", "ContractVerifierMessage");
+		this.blockBuilder.appendWithSpace("= contractVerifierMessaging.create(")
 				.addEmptyLine().indent();
 		this.givens.stream().filter(given -> given.accept(metadata)).forEach(given -> {
-			given.apply(metadata);
+			given.apply(metadata, methodBuilder);
 			this.blockBuilder.addEmptyLine();
 		});
 		this.blockBuilder.unindent().unindent().startBlock().addIndented(")")

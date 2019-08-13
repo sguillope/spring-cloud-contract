@@ -27,7 +27,8 @@ class JaxRsRequestInvokerWhen implements When, JaxRsBodyParser {
 	}
 
 	@Override
-	public MethodVisitor<When> apply(SingleContractMetadata metadata) {
+	public MethodVisitor<When> apply(SingleContractMetadata metadata,
+			SingleMethodBuilder methodBuilder) {
 		this.blockBuilder.addIndented(".invoke()").addEndingIfNotPresent();
 		return this;
 	}
