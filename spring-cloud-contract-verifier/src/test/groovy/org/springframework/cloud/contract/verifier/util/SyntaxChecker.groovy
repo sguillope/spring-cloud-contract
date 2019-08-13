@@ -46,6 +46,7 @@ import org.springframework.cloud.contract.verifier.messaging.internal.ContractVe
 import org.springframework.cloud.contract.verifier.messaging.internal.ContractVerifierMessaging
 import org.springframework.cloud.contract.verifier.messaging.internal.ContractVerifierObjectMapper
 import org.springframework.cloud.contract.verifier.messaging.util.ContractVerifierMessagingUtil
+import org.springframework.cloud.function.compiler.java.RuntimeJavaCompiler
 import org.springframework.util.ReflectionUtils
 /**
  * checking the syntax of produced scripts
@@ -54,7 +55,7 @@ import org.springframework.util.ReflectionUtils
 @Commons
 class SyntaxChecker {
 
-	Entity entity
+	public static final RuntimeJavaCompiler COMPILER = new RuntimeJavaCompiler()
 
 	private static final String[] DEFAULT_IMPORTS = [
 			Contract.name,
@@ -179,34 +180,27 @@ private void test(String test) {
 		String className = className(test)
 		String fqnClassName = "com.example.${className}"
 		test = test.replaceAll("class FooTest", "class " + className)
-				   .replaceAll("import javax.ws.rs.core.Response", "import javax.ws.rs.core.Response; import javax.ws.rs.client.WebTarget;")
-		return InMemoryJavaCompiler.compile(fqnClassName, test)
+		.replaceAll("import javax.ws.rs.core.Response", "import javax.ws.rs.core.Response; import javax.ws.rs.client.WebTarget;")
+		return compileJava(fqnClassName, test)
+
 	}
 
-	static Class tryToCompileKotlin(String builderName, String test) {
-		String className = className(test)
-		String fqnClassName = "com.example.${className}"
-		test = test.replaceAll("class FooTest", "class " + className)
-				   .replaceAll("import javax.ws.rs.core.Response", "import javax.ws.rs.core.Response; import javax.ws.rs.client.WebTarget;")
-		return tryToCompileKotlinWithoutImports(fqnClassName, test)
+	private static Class<?> compileJava(String fqnClassName, String test) {
+		return InMemoryJavaCompiler.newInstance()
+							.ignoreWarnings()
+							.compile(fqnClassName, test)
 	}
 
 	private static String className(String test) {
 		Random random = new Random()
 		int first = Math.abs(random.nextInt())
 		int hashCode = Math.abs(test.hashCode())
-		StringBuffer sourceCode = new StringBuffer()
 		String className = "TestClass_${first}_${hashCode}"
 		return className
 	}
 
 	static boolean tryToCompileJavaWithoutImports(String fqn, String test) {
-		InMemoryJavaCompiler.compile(fqn, test)
-		return true
-	}
-
-	static boolean tryToCompileKotlinWithoutImports(String fqn, String test) {
-		new ScriptEngineManager().getEngineByExtension("kts").eval(test)
+		compileJava(fqn, test)
 		return true
 	}
 
@@ -218,6 +212,23 @@ private void test(String test) {
 			throw t
 		}
 		return true
+	}
+
+	static Class tryToCompileKotlin(String builderName, String test) {
+		String className = className(test)
+		String fqnClassName = "com.example.${className}"
+		test = test.replaceAll("class FooTest", "class " + className)
+				   .replaceAll("import javax.ws.rs.core.Response", "import javax.ws.rs.core.Response; import javax.ws.rs.client.WebTarget;")
+		return compileKotlin(fqnClassName, test)
+	}
+
+	static boolean tryToCompileKotlinWithoutImports(String fqn, String test) {
+		compileKotlin(fqn, test)
+		return true
+	}
+
+	static boolean compileKotlin(String fqn, String test) {
+		return new ScriptEngineManager().getEngineByExtension("kts").eval(test)
 	}
 
 }

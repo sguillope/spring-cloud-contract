@@ -124,6 +124,9 @@ class TestGenerator {
 	void generateTestClasses(final String basePackageName) {
 		ListMultimap<Path, ContractMetadata> contracts = contractFileScanner.
 				findContracts()
+		if (log.isDebugEnabled()) {
+			log.debug("Found the following contracts " + contracts.keySet())
+		}
 		Set<Map.Entry<Path,Collection<ContractMetadata>>> inProgress = contracts.asMap().entrySet()
 				 .findAll { Map.Entry<Path, Collection<ContractMetadata>> entry -> entry.value.any { it.anyInProgress() }}
 		if (!inProgress.isEmpty() && configProperties.failOnInProgress) {
