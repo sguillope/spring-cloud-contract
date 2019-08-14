@@ -92,8 +92,9 @@ class GenericJsonBodyThen implements Then {
 			SingleMethodBuilder methodBuilder, Object responseBody,
 			BodyMatchers bodyMatchers) {
 		JsonBodyVerificationBuilder jsonBodyVerificationBuilder = new JsonBodyVerificationBuilder(
-				this.generatedClassMetaData.configProperties, this.templateProcessor,
-				this.contractTemplate, contractMetadata.getContract(),
+				this.generatedClassMetaData.configProperties.getAssertJsonSize(),
+				this.templateProcessor, this.contractTemplate,
+				contractMetadata.getContract(),
 				Optional.of(this.blockBuilder.getLineEnding()),
 				bodyParser::postProcessJsonPath);
 		// TODO: Refactor spock from should comment out bdd blocks

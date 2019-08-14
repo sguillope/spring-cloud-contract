@@ -16,20 +16,38 @@
 
 package org.springframework.cloud.contract.spec.internal;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 /**
  * Contains most commonly used messaging headers.
  *
  * @author Marcin Grzejszczak
+ * @author Tim Ysewyn
  * @since 1.1.2
  */
 public class MessagingHeaders {
 
+	private static final Log log = LogFactory.getLog(MessagingHeaders.class);
+
+	public MessagingHeaders() {
+		log.warn(
+				"WARNING: MessagingHeaders shouldn't be instantiated. Use its static methods instead.");
+	}
+
 	/**
-	 * The Content Type of a message.
-	 * @return messaging content type
+	 * The Content-Type header name of a message.
 	 */
+	public static final String MESSAGING_CONTENT_TYPE = "contentType";
+
+	/**
+	 * The Content-Type header name of a message.
+	 * @return the Content-Type header name
+	 * @deprecated Replaced by {@code MessagingHeaders.MESSAGING_CONTENT_TYPE}.
+	 */
+	@Deprecated
 	public String messagingContentType() {
-		return "contentType";
+		return MESSAGING_CONTENT_TYPE;
 	}
 
 }

@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+// tag::class[]
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -26,6 +27,7 @@ import org.springframework.cloud.contract.spec.internal.DslProperty;
 import org.springframework.cloud.contract.spec.internal.Request;
 import org.springframework.cloud.contract.verifier.util.ContractVerifierUtil;
 
+// tag::class[]
 class contract_multipart implements Supplier<Collection<Contract>> {
 
 	private static Map<String, DslProperty> namedProps(Request r) {

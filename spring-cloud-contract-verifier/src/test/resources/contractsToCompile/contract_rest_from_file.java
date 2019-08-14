@@ -15,12 +15,14 @@
  * limitations under the License.
  */
 
+// tag::class[]
 import java.util.Collection;
 import java.util.Collections;
 import java.util.function.Supplier;
 
 import org.springframework.cloud.contract.spec.Contract;
 
+// tag::class[]
 class contract_rest_from_file implements Supplier<Collection<Contract>> {
 
 	@Override
