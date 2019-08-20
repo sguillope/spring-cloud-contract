@@ -622,4 +622,125 @@ class MockMvcMethodBodyBuilderWithMatchersSpec extends Specification implements 
 			}
 	}
 
+	@Issue('#1091')
+	def 'should work for map with array value where matchers cover all array fields for [#methodBuilderName]'() {
+		given:
+			Contract contractDsl = Contract.make {
+				request {
+					name "ISSUE 1091"
+					method 'GET'
+					url '/test'
+					headers {
+						contentType(applicationJson())
+					}
+				}
+				response {
+					status OK()
+						body('''
+								{							
+								"prices": [
+									{
+									"country"      : "ES",
+									"originalPrice": "1500"
+									}
+											]
+								}
+								''')
+					bodyMatchers {
+							jsonPath('$.prices[0].country', byRegex(nonBlank()))
+							jsonPath('$.prices[0].originalPrice', byRegex(number()))
+					}
+						headers {
+							contentType(applicationJsonUtf8())
+						}
+				}
+			}
+			methodBuilder()
+		when:
+			String test = singleTestGenerator(contractDsl)
+			SyntaxChecker.tryToCompileWithoutCompileStatic(methodBuilderName, test)
+		then:
+			!test.contains('isEmpty()')
+		where:
+			methodBuilderName | methodBuilder
+			"spock"           | { properties.testFramework = TestFramework.SPOCK }
+			"testng"          | { properties.testFramework = TestFramework.TESTNG }
+			"mockmvc"         | { properties.testMode = TestMode.MOCKMVC }
+			"jaxrs-spock"     | {
+				properties.testFramework = TestFramework.SPOCK;
+				properties.testMode = TestMode.JAXRSCLIENT
+			}
+			"jaxrs"           | {
+				properties.testFramework = TestFramework.JUNIT;
+				properties.testMode = TestMode.JAXRSCLIENT
+			}
+			"webclient"       | {
+				properties.testMode = TestMode.WEBTESTCLIENT
+			}
+	}
+
+	@Issue('#1091')
+	def 'should work for array containing map with array value where matchers cover all array fields for [#methodBuilderName]'() {
+		given:
+			Contract contractDsl = Contract.make {
+				request {
+					name "ISSUE 1091"
+					method 'GET'
+					url '/test'
+					headers {
+						contentType(applicationJson())
+					}
+				}
+				response {
+					status OK()
+					body('''
+								{							
+								"test": [		
+								{				
+								"prices": [
+									{
+									"country"      : "ES",
+									"originalPrice": 1500
+									}
+											]
+									}
+										]
+								}
+								''')
+					bodyMatchers {
+						jsonPath('$.test[0].barcode', byRegex(nonBlank()))
+						jsonPath('$.test[0].id', byRegex(nonBlank()))
+						jsonPath('$.test[0].prices[0].country', byRegex(nonBlank()))
+						jsonPath('$.test[0].prices[0].originalPrice', byRegex(nonBlank()))
+						jsonPath('$.test[0].prices[?(@.originalPrice==1500)].originalPrice',
+								byRegex(nonBlank()))
+					}
+					headers {
+						contentType(applicationJsonUtf8())
+					}
+				}
+			}
+			methodBuilder()
+		when:
+			String test = singleTestGenerator(contractDsl)
+			SyntaxChecker.tryToCompileWithoutCompileStatic(methodBuilderName, test)
+		then:
+			!test.contains('isEmpty()')
+		where:
+			methodBuilderName | methodBuilder
+			"spock"           | { properties.testFramework = TestFramework.SPOCK }
+			"testng"          | { properties.testFramework = TestFramework.TESTNG }
+			"mockmvc"         | { properties.testMode = TestMode.MOCKMVC }
+			"jaxrs-spock"     | {
+				properties.testFramework = TestFramework.SPOCK;
+				properties.testMode = TestMode.JAXRSCLIENT
+			}
+			"jaxrs"           | {
+				properties.testFramework = TestFramework.JUNIT;
+				properties.testMode = TestMode.JAXRSCLIENT
+			}
+			"webclient"       | {
+				properties.testMode = TestMode.WEBTESTCLIENT
+			}
+	}
 }
