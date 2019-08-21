@@ -18,48 +18,65 @@ package org.springframework.cloud.contract.verifier.builder;
 
 import java.util.Map;
 
+import org.springframework.cloud.contract.spec.internal.FromFileProperty;
 import org.springframework.cloud.contract.spec.internal.NamedProperty;
 import org.springframework.cloud.contract.spec.internal.Request;
 import org.springframework.cloud.contract.verifier.config.TestFramework;
 import org.springframework.cloud.contract.verifier.file.SingleContractMetadata;
 import org.springframework.cloud.contract.verifier.util.MapConverter;
 
-import static org.springframework.cloud.contract.verifier.util.ContentUtils.getJavaMultipartFileParameterContent;
-import static org.springframework.cloud.contract.verifier.util.ContentUtils.getKotlinMultipartFileParameterContent;
+import static org.apache.commons.text.StringEscapeUtils.escapeJava;
+import static org.springframework.cloud.contract.verifier.util.ContentUtils.javaNamedPropertyValue;
+import static org.springframework.cloud.contract.verifier.util.ContentUtils.namedContentTypeNameIfPresent;
+import static org.springframework.cloud.contract.verifier.util.ContentUtils.namedPropertyName;
 
 class MockMvcMultipartGiven implements Given {
-
-	private final BlockBuilder blockBuilder;
-
-	private final GeneratedClassMetaData generatedClassMetaData;
 
 	private final BodyReader bodyReader;
 
 	private final BodyParser bodyParser;
 
-	MockMvcMultipartGiven(BlockBuilder blockBuilder,
+	protected final GeneratedClassMetaData generatedClassMetaData;
+
+	protected final MethodBodyWriter methodBodyWriter;
+
+	MockMvcMultipartGiven(MethodBodyWriter methodBodyWriter,
 			GeneratedClassMetaData generatedClassMetaData, BodyParser bodyParser) {
-		this.blockBuilder = blockBuilder;
+		this.methodBodyWriter = methodBodyWriter;
 		this.bodyReader = new BodyReader(generatedClassMetaData);
 		this.bodyParser = bodyParser;
 		this.generatedClassMetaData = generatedClassMetaData;
 	}
 
 	@Override
-	public MethodVisitor<Given> apply(SingleContractMetadata metadata,
-			SingleMethodBuilder methodBuilder) {
-		getMultipartParameters(metadata).entrySet().forEach(entry -> this.blockBuilder
-				.addLine(getMultipartParameterLine(metadata, entry)));
+	public MethodVisitor<Given> apply(SingleContractMetadata metadata) {
+		getMultipartParameters(metadata).forEach((key, value) -> {
+			if (isMultipartParameter(value)) {
+				NamedProperty namedProperty = (NamedProperty) value;
+				// @formatter:off
+				methodBodyWriter.withIndentation()
+						.continueWithNewMethodCall("multiPart")
+							.withParameter(parameterName(key))
+							.withParameter(multipartName(namedProperty))
+							.withParameter(multipartContent(namedProperty, metadata))
+							.withParameter(multipartContentType(namedProperty))
+						.closeCallAnd()
+						.addNewLine();
+				// @formatter:on
+			}
+			else {
+				// @formatter:off
+				methodBodyWriter.withIndentation()
+						.continueWithNewMethodCall("param")
+							.withParameter(this.bodyParser.quotedShortText(key))
+							.withParameter(this.bodyParser.quotedShortText(
+									MapConverter.getTestSideValuesForNonBody(value)))
+						.closeCallAnd()
+						.addNewLine();
+				// @formatter:on
+			}
+		});
 		return this;
-	}
-
-	private String getMultipartParameterLine(SingleContractMetadata metadata,
-			Map.Entry<String, Object> parameter) {
-		if (parameter.getValue() instanceof NamedProperty) {
-			return ".multiPart(" + getMultipartFileParameterContent(metadata,
-					parameter.getKey(), (NamedProperty) parameter.getValue()) + ")";
-		}
-		return getParameterString(parameter);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -68,23 +85,35 @@ class MockMvcMultipartGiven implements Given {
 				.getServerValue();
 	}
 
-	private String getMultipartFileParameterContent(SingleContractMetadata metadata,
-			String propertyName, NamedProperty propertyValue) {
-		// For now, I don't like this :(
-		return KotlinClassMetaData.hasKotlinSupport()
-				? getKotlinMultipartFileParameterContent(propertyName, propertyValue,
-						fileProp -> this.bodyReader.readBytesFromFileString(metadata,
-								fileProp, CommunicationType.REQUEST))
-				: getJavaMultipartFileParameterContent(propertyName, propertyValue,
-						fileProp -> this.bodyReader.readBytesFromFileString(metadata,
-								fileProp, CommunicationType.REQUEST));
+	private boolean isMultipartParameter(Object parameter) {
+		return parameter instanceof NamedProperty;
 	}
 
-	private String getParameterString(Map.Entry<String, Object> parameter) {
-		return ".param(" + this.bodyParser.quotedShortText(parameter.getKey()) + ", "
-				+ this.bodyParser.quotedShortText(
-						MapConverter.getTestSideValuesForNonBody(parameter.getValue()))
-				+ ")";
+	protected BodyReader bodyReader() {
+		return bodyReader;
+	}
+
+	protected String quote() {
+		return "\"";
+	}
+
+	protected String parameterName(String parameterName) {
+		return quote() + escapeJava(parameterName) + quote();
+	}
+
+	protected String multipartName(NamedProperty namedProperty) {
+		return namedPropertyName(namedProperty, quote());
+	}
+
+	protected String multipartContent(NamedProperty namedProperty,
+			SingleContractMetadata metadata) {
+		return javaNamedPropertyValue(namedProperty, quote(),
+				(FromFileProperty property) -> this.bodyReader.readBytesFromFileString(
+						metadata, property, CommunicationType.REQUEST));
+	}
+
+	protected String multipartContentType(NamedProperty namedProperty) {
+		return namedContentTypeNameIfPresent(namedProperty, quote());
 	}
 
 	@Override

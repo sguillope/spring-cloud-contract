@@ -36,9 +36,9 @@ interface ClassBuilder {
 
 	ClassMetaData build();
 
-	ClassBuilder writeImport(String fqn);
+	ClassBuilder writeImport(String fullyQualifiedName);
 
-	ClassBuilder writeStaticImport(String fqn);
+	ClassBuilder writeStaticImport(String fullyQualifiedName);
 
 	ClassBuilder writeAnnotation(String annotation);
 

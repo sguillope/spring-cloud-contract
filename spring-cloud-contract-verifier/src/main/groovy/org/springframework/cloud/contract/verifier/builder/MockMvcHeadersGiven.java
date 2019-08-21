@@ -19,49 +19,43 @@ package org.springframework.cloud.contract.verifier.builder;
 import java.util.Iterator;
 
 import org.springframework.cloud.contract.spec.internal.Header;
-import org.springframework.cloud.contract.spec.internal.Headers;
 import org.springframework.cloud.contract.spec.internal.MatchingStrategy;
 import org.springframework.cloud.contract.spec.internal.Request;
 import org.springframework.cloud.contract.verifier.file.SingleContractMetadata;
-import org.springframework.cloud.contract.verifier.util.MapConverter;
+
+import static org.springframework.cloud.contract.verifier.builder.ContentHelper.getTestSideForNonBodyValue;
+import static org.springframework.cloud.contract.verifier.util.MapConverter.getTestSideValuesForNonBody;
 
 class MockMvcHeadersGiven implements Given {
 
-	private final BlockBuilder blockBuilder;
+	protected final MethodBodyWriter methodBodyWriter;
 
-	MockMvcHeadersGiven(BlockBuilder blockBuilder) {
-		this.blockBuilder = blockBuilder;
+	MockMvcHeadersGiven(MethodBodyWriter methodBodyWriter) {
+		this.methodBodyWriter = methodBodyWriter;
 	}
 
 	@Override
-	public MethodVisitor<Given> apply(SingleContractMetadata metadata,
-			SingleMethodBuilder methodBuilder) {
-		processInput(this.blockBuilder, metadata.getContract().getRequest().getHeaders());
-		return this;
-	}
-
-	private void processInput(BlockBuilder bb, Headers headers) {
-		Iterator<Header> iterator = headers.getEntries().iterator();
+	public MethodVisitor<Given> apply(SingleContractMetadata metadata) {
+		Iterator<Header> iterator = metadata.getContract().getRequest().getHeaders()
+				.getEntries().iterator();
 		while (iterator.hasNext()) {
 			Header header = iterator.next();
 			if (ofAbsentType(header)) {
-				return;
+				continue;
 			}
+			// @formatter:off
+			methodBodyWriter.withIndentation()
+					.continueWithNewMethodCall("header")
+						.withParameter(getTestSideForNonBodyValue(header.getName()))
+						.withParameter(getTestSideForNonBodyValue(
+						getTestSideValuesForNonBody(header.getServerValue())))
+					.closeCallAnd();
+			// @formatter:on
 			if (iterator.hasNext()) {
-				bb.addLine(string(header));
-			}
-			else {
-				bb.addIndented(string(header));
+				methodBodyWriter.addNewLine();
 			}
 		}
-	}
-
-	private String string(Header header) {
-		return ".header(" + ContentHelper.getTestSideForNonBodyValue(header.getName())
-				+ ", "
-				+ ContentHelper.getTestSideForNonBodyValue(
-						MapConverter.getTestSideValuesForNonBody(header.getServerValue()))
-				+ ")";
+		return this;
 	}
 
 	private boolean ofAbsentType(Header header) {

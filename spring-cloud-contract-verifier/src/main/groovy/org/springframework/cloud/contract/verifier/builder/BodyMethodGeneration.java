@@ -17,7 +17,6 @@
 package org.springframework.cloud.contract.verifier.builder;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.apache.commons.text.StringEscapeUtils;
 
@@ -28,6 +27,7 @@ import org.springframework.util.SerializationUtils;
 /**
  * @author Marcin Grzejszczak
  * @author Olga Maciaszek-Sharma
+ * @author Tim Ysewyn
  * @since 2.1.0
  */
 interface BodyMethodGeneration {
@@ -37,31 +37,24 @@ interface BodyMethodGeneration {
 		return SerializationUtils.deserialize(serializedObject);
 	}
 
-	default void addColonIfRequired(Optional<String> lineSuffix,
-			BlockBuilder blockBuilder) {
-		lineSuffix.ifPresent(s -> blockBuilder.addAtTheEnd(lineSuffix.get()));
-	}
-
 	default void addBodyMatchingBlock(List<BodyMatcher> matchers,
-			BlockBuilder blockBuilder, Object responseBody,
-			boolean shouldCommentOutBDDBlocks) {
-		blockBuilder.endBlock();
-		blockBuilder.addLine(getAssertionJoiner(shouldCommentOutBDDBlocks));
-		blockBuilder.startBlock();
-		matchers.forEach(it -> {
-			if (it.matchingType() == MatchingType.NULL) {
-				methodForNullCheck(it, blockBuilder);
-			}
-			else if (MatchingType.regexRelated(it.matchingType())
-					|| it.matchingType() == MatchingType.EQUALITY) {
-				methodForEqualityCheck(it, blockBuilder, responseBody);
-			}
-			else if (it.matchingType() == MatchingType.COMMAND) {
-				methodForCommandExecution(it, blockBuilder, responseBody);
-			}
-			else {
-				methodForTypeCheck(it, blockBuilder, responseBody);
-			}
+			MethodBodyWriter methodBodyWriter, Object responseBody) {
+		methodBodyWriter.inAndBlock(() -> {
+			matchers.forEach(it -> {
+				if (it.matchingType() == MatchingType.NULL) {
+					methodForNullCheck(it);
+				}
+				else if (MatchingType.regexRelated(it.matchingType())
+						|| it.matchingType() == MatchingType.EQUALITY) {
+					methodForEqualityCheck(it, responseBody);
+				}
+				else if (it.matchingType() == MatchingType.COMMAND) {
+					methodForCommandExecution(it, responseBody);
+				}
+				else {
+					methodForTypeCheck(it, responseBody);
+				}
+			});
 		});
 	}
 
@@ -69,16 +62,12 @@ interface BodyMethodGeneration {
 		return '"' + StringEscapeUtils.escapeJava(string) + '"';
 	}
 
-	void methodForNullCheck(BodyMatcher bodyMatcher, BlockBuilder bb);
+	void methodForNullCheck(BodyMatcher bodyMatcher);
 
-	void methodForEqualityCheck(BodyMatcher bodyMatcher, BlockBuilder bb, Object body);
+	void methodForEqualityCheck(BodyMatcher bodyMatcher, Object body);
 
-	void methodForCommandExecution(BodyMatcher bodyMatcher, BlockBuilder bb, Object body);
+	void methodForCommandExecution(BodyMatcher bodyMatcher, Object body);
 
-	void methodForTypeCheck(BodyMatcher bodyMatcher, BlockBuilder bb, Object body);
-
-	default String getAssertionJoiner(boolean shouldCommentOutBDDBlocks) {
-		return shouldCommentOutBDDBlocks ? "// and:" : "and:";
-	}
+	void methodForTypeCheck(BodyMatcher bodyMatcher, Object body);
 
 }

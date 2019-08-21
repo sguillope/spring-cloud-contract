@@ -26,7 +26,7 @@ class MethodAnnotationBuilder {
 
 	MethodAnnotationBuilder(SingleMethodBuilder singleMethodBuilder) {
 		this.singleMethodBuilder = singleMethodBuilder;
-		this.builder = singleMethodBuilder.getBlockBuilder();
+		this.builder = singleMethodBuilder.blockBuilder();
 		this.metaData = singleMethodBuilder.getGeneratedClassMetaData();
 	}
 

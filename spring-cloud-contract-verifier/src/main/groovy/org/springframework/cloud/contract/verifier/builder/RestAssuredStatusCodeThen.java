@@ -21,24 +21,21 @@ import org.springframework.cloud.contract.verifier.file.SingleContractMetadata;
 
 class RestAssuredStatusCodeThen implements Then {
 
-	private final BlockBuilder blockBuilder;
-
 	private final ComparisonBuilder comparisonBuilder;
 
-	RestAssuredStatusCodeThen(BlockBuilder blockBuilder,
+	protected final MethodBodyWriter methodBodyWriter;
+
+	RestAssuredStatusCodeThen(MethodBodyWriter methodBodyWriter,
 			ComparisonBuilder comparisonBuilder) {
-		this.blockBuilder = blockBuilder;
+		this.methodBodyWriter = methodBodyWriter;
 		this.comparisonBuilder = comparisonBuilder;
 	}
 
 	@Override
-	public MethodVisitor<Then> apply(SingleContractMetadata metadata,
-			SingleMethodBuilder methodBuilder) {
+	public MethodVisitor<Then> apply(SingleContractMetadata metadata) {
 		Response response = metadata.getContract().getResponse();
-		this.blockBuilder
-				.addIndented(this.comparisonBuilder.assertThat("response.statusCode()",
-						response.getStatus().getServerValue()))
-				.addEndingIfNotPresent();
+		methodBodyWriter.addLine(this.comparisonBuilder.assertThat(
+				"response.statusCode()", response.getStatus().getServerValue()));
 		return this;
 	}
 

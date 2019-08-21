@@ -21,20 +21,21 @@ import org.springframework.cloud.contract.verifier.file.SingleContractMetadata;
 
 class SpockMockMvcResponseWhen implements When, MockMvcAcceptor {
 
-	private final BlockBuilder blockBuilder;
-
 	private final GeneratedClassMetaData generatedClassMetaData;
 
-	SpockMockMvcResponseWhen(BlockBuilder blockBuilder, GeneratedClassMetaData metaData) {
-		this.blockBuilder = blockBuilder;
+	protected final MethodBodyWriter methodBodyWriter;
+
+	SpockMockMvcResponseWhen(MethodBodyWriter methodBodyWriter,
+			GeneratedClassMetaData metaData) {
+		this.methodBodyWriter = methodBodyWriter;
 		this.generatedClassMetaData = metaData;
 	}
 
 	@Override
-	public MethodVisitor<When> apply(SingleContractMetadata metadata,
-			SingleMethodBuilder methodBuilder) {
-		methodBuilder.variable("response", "def");
-		this.blockBuilder.appendWithSpace("= given().spec(request)");
+	public MethodVisitor<When> apply(SingleContractMetadata metadata) {
+		methodBodyWriter.declareVariable("response", "def").assignValue()
+				.withMethodCall("given").closeCallAnd().continueWithNewMethodCall("spec")
+				.withParameter("request").closeCall();
 		return this;
 	}
 

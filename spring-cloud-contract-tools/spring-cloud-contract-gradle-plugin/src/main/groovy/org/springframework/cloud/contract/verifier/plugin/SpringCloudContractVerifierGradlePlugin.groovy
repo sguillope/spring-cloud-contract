@@ -26,7 +26,10 @@ import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.jvm.tasks.Jar
+
 import org.springframework.cloud.contract.verifier.config.TestFramework
+
+import static org.springframework.cloud.contract.verifier.util.KotlinPluginsAvailabilityChecker.hasKotlinSupport
 
 /**
  * Gradle plugin for Spring Cloud Contract Verifier that from the DSL contract can
@@ -73,7 +76,7 @@ class SpringCloudContractVerifierGradlePlugin implements Plugin<Project> {
 	// This must be called within afterEvaluate due to getting data from extension, which must be initialised first:
 	@CompileDynamic
 	private void applyDefaultSourceSets(ContractVerifierExtension extension) {
-		String sourceSetType = extension.testFramework.get() == TestFramework.SPOCK ? "groovy" : "java"
+		String sourceSetType = extension.testFramework.get() == TestFramework.SPOCK ? "groovy" : (hasKotlinSupport() ? "kotlin" : "java")
 		project.sourceSets.test."${sourceSetType}" {
 			project.logger.
 					info("Registering ${extension.generatedTestSourcesDir.get().asFile} as test source directory")
@@ -124,6 +127,10 @@ class SpringCloudContractVerifierGradlePlugin implements Plugin<Project> {
 			it.dependsOn copyContracts
 		}
 		project.tasks.findByName("compileTestJava").dependsOn(task)
+		Task kotlinTestCompileTask = project.tasks.findByName("compileTestKotlin")
+		if (kotlinTestCompileTask != null) {
+			kotlinTestCompileTask.dependsOn(task)
+		}
 		project.tasks.findByName("check").dependsOn(task)
 	}
 

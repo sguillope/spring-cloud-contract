@@ -20,18 +20,22 @@ import org.springframework.cloud.contract.verifier.file.SingleContractMetadata;
 
 class MessagingBodyWhen implements When {
 
-	private final BlockBuilder blockBuilder;
+	protected final MethodBodyWriter methodBodyWriter;
 
-	MessagingBodyWhen(BlockBuilder blockBuilder) {
-		this.blockBuilder = blockBuilder;
+	MessagingBodyWhen(MethodBodyWriter methodBodyWriter) {
+		this.methodBodyWriter = methodBodyWriter;
 	}
 
 	@Override
-	public MethodVisitor<When> apply(SingleContractMetadata metadata,
-			SingleMethodBuilder methodBuilder) {
-		this.blockBuilder.addIndented("contractVerifierMessaging.send(inputMessage, \""
-				+ metadata.getContract().getInput().getMessageFrom().getServerValue()
-				+ "\")").addEndingIfNotPresent();
+	public MethodVisitor<When> apply(SingleContractMetadata metadata) {
+		// @formatter:off
+		methodBodyWriter.withIndentation()
+				.usingVariable("contractVerifierMessaging")
+				.callMethod("send")
+					.withParameter("inputMessage")
+					.withParameter("\"" + metadata.getContract().getInput().getMessageFrom().getServerValue() + "\"")
+				.closeCallAndEndStatement();
+		// @formatter:on
 		return this;
 	}
 

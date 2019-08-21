@@ -24,45 +24,47 @@ import org.springframework.cloud.contract.verifier.file.SingleContractMetadata;
 
 class JaxRsWhen implements When, BodyMethodVisitor, JaxRsAcceptor {
 
-	private final BlockBuilder blockBuilder;
-
 	private final GeneratedClassMetaData generatedClassMetaData;
 
 	private final JaxRsBodyParser bodyParser;
 
 	private final List<When> whens = new LinkedList<>();
 
-	JaxRsWhen(BlockBuilder blockBuilder, GeneratedClassMetaData generatedClassMetaData,
-			JaxRsBodyParser bodyParser) {
-		this.blockBuilder = blockBuilder;
+	protected final MethodBodyWriter methodBodyWriter;
+
+	JaxRsWhen(MethodBodyWriter methodBodyWriter,
+			GeneratedClassMetaData generatedClassMetaData, JaxRsBodyParser bodyParser) {
+		this.methodBodyWriter = methodBodyWriter;
 		this.generatedClassMetaData = generatedClassMetaData;
 		this.bodyParser = bodyParser;
 		this.whens.addAll(Arrays.asList(
-				new JaxRsUrlPathWhen(this.blockBuilder, this.generatedClassMetaData),
-				new JaxRsRequestWhen(this.blockBuilder, this.generatedClassMetaData),
-				new JaxRsRequestHeadersWhen(this.blockBuilder, bodyParser),
-				new JaxRsRequestCookiesWhen(this.blockBuilder, bodyParser),
-				new JaxRsRequestMethodWhen(this.blockBuilder,
-						this.generatedClassMetaData),
-				new JaxRsRequestInvokerWhen(this.blockBuilder)));
+				new JaxRsUrlPathWhen(methodBodyWriter, generatedClassMetaData),
+				new JaxRsRequestWhen(methodBodyWriter, generatedClassMetaData),
+				new JaxRsRequestHeadersWhen(methodBodyWriter, bodyParser),
+				new JaxRsRequestCookiesWhen(methodBodyWriter, bodyParser),
+				new JaxRsRequestMethodWhen(methodBodyWriter, generatedClassMetaData),
+				new JaxRsRequestInvokerWhen(methodBodyWriter)));
 	}
 
 	@Override
-	public MethodVisitor<When> apply(SingleContractMetadata singleContractMetadata,
-			SingleMethodBuilder methodBuilder) {
-		startBodyBlock(this.blockBuilder, "when:");
-		methodBuilder.variable("response", "Response");
-		this.blockBuilder.appendWithSpace("= webTarget");
-		this.blockBuilder.indent();
-		indentedBodyBlock(this.blockBuilder, this.whens, singleContractMetadata,
-				methodBuilder);
-		this.blockBuilder.addEmptyLine().endBlock();
-		if (expectsResponseBody(singleContractMetadata)) {
-			methodBuilder.variable("responseAsString", "String");
-			this.blockBuilder.appendWithSpace("= " + this.bodyParser.readEntity())
-					.addEndingIfNotPresent().addEmptyLine();
-		}
-		this.blockBuilder.endBlock();
+	public MethodVisitor<When> apply(SingleContractMetadata singleContractMetadata) {
+		methodBodyWriter.inWhenBlock(() -> {
+			// @formatter:off
+			methodBodyWriter
+					.declareVariable("response", "Response")
+					.assignValue()
+					.usingVariable("webTarget")
+					.and();
+			// @formatter:on
+			indentedBodyBlock(methodBodyWriter, this.whens, singleContractMetadata);
+			if (expectsResponseBody(singleContractMetadata)) {
+				// @formatter:off
+				methodBodyWriter
+						.declareVariable("responseAsString", "String")
+						.assignValue(this.bodyParser.readEntity());
+				// @formatter:on
+			}
+		});
 		return this;
 	}
 

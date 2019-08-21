@@ -16,11 +16,11 @@
 
 package org.springframework.cloud.contract.verifier.builder;
 
-import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import org.springframework.cloud.contract.verifier.file.SingleContractMetadata;
 
-interface MethodVisitor<T> extends MethodAcceptor,
-		BiFunction<SingleContractMetadata, SingleMethodBuilder, MethodVisitor<T>> {
+interface MethodVisitor<T>
+		extends MethodAcceptor, Function<SingleContractMetadata, MethodVisitor<T>> {
 
 }

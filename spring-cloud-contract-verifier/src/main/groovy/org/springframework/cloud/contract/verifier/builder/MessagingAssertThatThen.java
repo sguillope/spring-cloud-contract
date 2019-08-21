@@ -20,17 +20,16 @@ import org.springframework.cloud.contract.verifier.file.SingleContractMetadata;
 
 class MessagingAssertThatThen implements Then {
 
-	private final BlockBuilder blockBuilder;
+	protected final MethodBodyWriter methodBodyWriter;
 
-	MessagingAssertThatThen(BlockBuilder blockBuilder) {
-		this.blockBuilder = blockBuilder;
+	MessagingAssertThatThen(MethodBodyWriter methodBodyWriter) {
+		this.methodBodyWriter = methodBodyWriter;
 	}
 
 	@Override
-	public MethodVisitor<Then> apply(SingleContractMetadata metadata,
-			SingleMethodBuilder methodBuilder) {
-		this.blockBuilder.addLineWithEnding(metadata.getContract().getOutputMessage()
-				.getAssertThat().getExecutionCommand());
+	public MethodVisitor<Then> apply(SingleContractMetadata metadata) {
+		methodBodyWriter.addLine(metadata.getContract().getOutputMessage().getAssertThat()
+				.getExecutionCommand());
 		return this;
 	}
 

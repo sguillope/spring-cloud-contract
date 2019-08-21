@@ -26,55 +26,82 @@ import org.springframework.util.StringUtils;
 
 class JaxRsRequestMethodWhen implements When, JaxRsBodyParser {
 
-	private final BlockBuilder blockBuilder;
-
 	private final BodyReader bodyReader;
 
-	JaxRsRequestMethodWhen(BlockBuilder blockBuilder, GeneratedClassMetaData metaData) {
-		this.blockBuilder = blockBuilder;
+	protected final MethodBodyWriter methodBodyWriter;
+
+	JaxRsRequestMethodWhen(MethodBodyWriter methodBodyWriter,
+			GeneratedClassMetaData metaData) {
+		this.methodBodyWriter = methodBodyWriter;
 		this.bodyReader = new BodyReader(metaData);
 	}
 
 	@Override
-	public MethodVisitor<When> apply(SingleContractMetadata metadata,
-			SingleMethodBuilder methodBuilder) {
-		appendMethodAndBody(metadata);
+	public MethodVisitor<When> apply(SingleContractMetadata metadata) {
+		Request request = metadata.getContract().getRequest();
+		String requestMethod = requestMethod(request);
+		if (request.getBody() != null) {
+			// @formatter:off
+			// .build("[request-method]", entity([request-content], "[content-type]"))
+			methodBodyWriter.withIndentation()
+					.continueWithNewMethodCall("build")
+						.withParameter("\"" + requestMethod.toUpperCase() + "\"")
+						.withParameter(() ->
+							methodBodyWriter.withMethodCall("entity")
+								.withParameter(() -> writeRequestContent(request, metadata, methodBodyWriter))
+								.withParameter("\"" + requestContentType(request, metadata) + "\"")
+							.closeCall()
+						)
+					.closeCall();
+			// @formatter:on
+		}
+		else {
+			// @formatter:off
+			methodBodyWriter.withIndentation()
+					.continueWithNewMethodCall("build")
+						.withParameter("\"" + requestMethod.toUpperCase() + "\"")
+					.closeCall();
+			// @formatter:on
+		}
 		return this;
 	}
 
-	void appendMethodAndBody(SingleContractMetadata metadata) {
-		Request request = metadata.getContract().getRequest();
-		ContentType type = metadata.getInputTestContentType();
-		String method = request.getMethod().getServerValue().toString().toLowerCase();
-		if (request.getBody() != null) {
-			String contentType = type.getMimeType();
-			contentType = StringUtils.hasText(contentType) ? contentType
-					: getContentType(request);
-			Object body = request.getBody().getServerValue();
-			String value;
-			if (body instanceof ExecutionProperty) {
-				value = body.toString();
-			}
-			else if (body instanceof FromFileProperty) {
-				FromFileProperty fileProperty = (FromFileProperty) body;
-				value = fileProperty.isByte()
-						? this.bodyReader.readBytesFromFileString(metadata, fileProperty,
-								CommunicationType.REQUEST)
-						: this.bodyReader.readStringFromFileString(metadata, fileProperty,
-								CommunicationType.REQUEST);
+	private String requestMethod(Request request) {
+		return request.getMethod().getServerValue().toString().toLowerCase();
+	}
+
+	private void writeRequestContent(Request request, SingleContractMetadata metadata,
+			MethodBodyWriter methodBodyWriter) {
+		Object body = request.getBody().getServerValue();
+		if (body instanceof ExecutionProperty) {
+			methodBodyWriter.append(body.toString());
+		}
+		else if (body instanceof FromFileProperty) {
+			FromFileProperty fileProperty = (FromFileProperty) body;
+			String fileContent = this.bodyReader.readBytesFromFileString(metadata,
+					fileProperty, CommunicationType.REQUEST);
+			if (fileProperty.isByte()) {
+				methodBodyWriter.append(fileContent);
 			}
 			else {
-				value = "\"" + requestBodyAsString(metadata) + "\"";
+				// @formatter:off
+				methodBodyWriter
+						.createInstanceOf("String")
+							.withArgument(fileContent)
+						.instantiate();
+				// @formatter:on
 			}
-			this.blockBuilder.addIndented(".build(\"" + method.toUpperCase()
-					+ "\", entity(" + value + ", \"" + contentType + "\"))");
 		}
 		else {
-			this.blockBuilder.addIndented(".build(\"" + method.toUpperCase() + "\")");
+			methodBodyWriter.append("\"" + requestBodyAsString(metadata) + "\"");
 		}
 	}
 
-	private String getContentType(Request request) {
+	private String requestContentType(Request request, SingleContractMetadata metadata) {
+		ContentType type = metadata.getInputTestContentType();
+		if (StringUtils.hasText(type.getMimeType())) {
+			return type.getMimeType();
+		}
 		Header contentType = request.getHeaders().getEntries().stream()
 				.filter(header -> "Content-Type".equalsIgnoreCase(header.getName()))
 				.findFirst().orElse(null);

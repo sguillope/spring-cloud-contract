@@ -88,22 +88,6 @@ class BlockBuilder {
 		return this
 	}
 
-	/**
-	 * Creates a block and adds indents
-	 */
-	BlockBuilder indent() {
-		startBlock().startBlock()
-		return this
-	}
-
-	/**
-	 * Removes indents and closes the block
-	 */
-	BlockBuilder unindent() {
-		endBlock().endBlock()
-		return this
-	}
-
 	BlockBuilder addLine(String line) {
 		return addIndented(line).append("\n")
 	}

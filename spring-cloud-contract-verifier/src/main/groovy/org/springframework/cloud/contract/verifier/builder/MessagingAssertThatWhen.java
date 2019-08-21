@@ -20,16 +20,15 @@ import org.springframework.cloud.contract.verifier.file.SingleContractMetadata;
 
 class MessagingAssertThatWhen implements When {
 
-	private final BlockBuilder blockBuilder;
+	protected final MethodBodyWriter methodBodyWriter;
 
-	MessagingAssertThatWhen(BlockBuilder blockBuilder) {
-		this.blockBuilder = blockBuilder;
+	MessagingAssertThatWhen(MethodBodyWriter methodBodyWriter) {
+		this.methodBodyWriter = methodBodyWriter;
 	}
 
 	@Override
-	public MethodVisitor<When> apply(SingleContractMetadata metadata,
-			SingleMethodBuilder methodBuilder) {
-		this.blockBuilder.addIndented(
+	public MethodVisitor<When> apply(SingleContractMetadata metadata) {
+		methodBodyWriter.addLine(
 				metadata.getContract().getInput().getAssertThat().getExecutionCommand());
 		return this;
 	}

@@ -97,8 +97,8 @@ class KotlinClassBuilder implements ClassBuilder, DefaultClassBuilder {
 	}
 
 	@Override
-	public ClassBuilder writeStaticImport(String fqn) {
-		blockBuilder().addLineWithEnding("import " + fqn);
+	public ClassBuilder writeStaticImport(String fullyQualifiedName) {
+		blockBuilder().addLineWithEnding("import " + fullyQualifiedName);
 		return this;
 	}
 

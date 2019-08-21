@@ -27,18 +27,17 @@ import org.springframework.cloud.contract.verifier.util.MapConverter;
 
 class JaxRsRequestCookiesWhen implements When {
 
-	private final BlockBuilder blockBuilder;
-
 	private final BodyParser bodyParser;
 
-	JaxRsRequestCookiesWhen(BlockBuilder blockBuilder, BodyParser bodyParser) {
-		this.blockBuilder = blockBuilder;
+	protected final MethodBodyWriter methodBodyWriter;
+
+	JaxRsRequestCookiesWhen(MethodBodyWriter methodBodyWriter, BodyParser bodyParser) {
+		this.methodBodyWriter = methodBodyWriter;
 		this.bodyParser = bodyParser;
 	}
 
 	@Override
-	public MethodVisitor<When> apply(SingleContractMetadata metadata,
-			SingleMethodBuilder methodBuilder) {
+	public MethodVisitor<When> apply(SingleContractMetadata metadata) {
 		appendCookies(metadata.getContract().getRequest());
 		return this;
 	}
@@ -48,15 +47,16 @@ class JaxRsRequestCookiesWhen implements When {
 				.filter(cookie -> !cookieOfAbsentType(cookie)).iterator();
 		while (iterator.hasNext()) {
 			Cookie cookie = iterator.next();
-			String value = ".cookie(" + this.bodyParser.quotedShortText(cookie.getKey())
-					+ ", " + this.bodyParser.quotedShortText(MapConverter
-							.getTestSideValuesForNonBody(cookie.getServerValue()))
-					+ ")";
+			// @formatter:off
+			methodBodyWriter.withIndentation()
+					.continueWithNewMethodCall("cookie")
+						.withParameter(this.bodyParser.quotedShortText(cookie.getKey()))
+						.withParameter(this.bodyParser.quotedShortText(MapConverter
+							.getTestSideValuesForNonBody(cookie.getServerValue())))
+					.closeCallAnd();
+			// @formatter:on
 			if (iterator.hasNext()) {
-				this.blockBuilder.addLine(value);
-			}
-			else {
-				this.blockBuilder.addIndented(value);
+				methodBodyWriter.addNewLine();
 			}
 		}
 	}

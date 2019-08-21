@@ -20,7 +20,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.springframework.cloud.contract.verifier.file.SingleContractMetadata;
@@ -43,12 +42,15 @@ class KotlinSingleMethodBuilder implements SingleMethodBuilder {
 
 	private List<Then> thens = new LinkedList<>();
 
-	final GeneratedClassMetaData generatedClassMetaData;
+	protected final MethodBodyWriter methodBodyWriter;
 
 	final BlockBuilder blockBuilder;
 
+	final GeneratedClassMetaData generatedClassMetaData;
+
 	private KotlinSingleMethodBuilder(BlockBuilder blockBuilder,
 			GeneratedClassMetaData generatedClassMetaData) {
+		this.methodBodyWriter = new KotlinMethodBodyWriter(blockBuilder);
 		this.blockBuilder = blockBuilder;
 		this.generatedClassMetaData = generatedClassMetaData;
 	}
@@ -84,12 +86,12 @@ class KotlinSingleMethodBuilder implements SingleMethodBuilder {
 	}
 
 	public KotlinSingleMethodBuilder restAssured() {
-		return given(new RestAssuredGiven(this.blockBuilder, this.generatedClassMetaData,
-				RestAssuredBodyParser.INSTANCE))
-						.when(new RestAssuredWhen(this.blockBuilder,
+		return given(new RestAssuredGiven(this.methodBodyWriter,
+				this.generatedClassMetaData, RestAssuredBodyParser.INSTANCE))
+						.when(new RestAssuredWhen(this.methodBodyWriter,
 								this.generatedClassMetaData,
 								RestAssuredBodyParser.INSTANCE))
-						.then(new RestAssuredThen(this.blockBuilder,
+						.then(new RestAssuredThen(this.methodBodyWriter,
 								this.generatedClassMetaData,
 								RestAssuredBodyParser.INSTANCE,
 								ComparisonBuilder.JAVA_HTTP_INSTANCE));
@@ -97,17 +99,18 @@ class KotlinSingleMethodBuilder implements SingleMethodBuilder {
 
 	public KotlinSingleMethodBuilder jaxRs() {
 		return given(new JaxRsGiven(this.generatedClassMetaData))
-				.when(new JaxRsWhen(this.blockBuilder, this.generatedClassMetaData,
-						JaxRsBodyParser.INSTANCE))
-				.then(new JaxRsThen(this.blockBuilder, this.generatedClassMetaData,
-						JaxRsBodyParser.INSTANCE, ComparisonBuilder.JAVA_HTTP_INSTANCE));
+				.when(new JaxRsWhen(this.methodBodyWriter, this.generatedClassMetaData,
+						KotlinJaxRsBodyParser.INSTANCE))
+				.then(new JaxRsThen(this.methodBodyWriter, this.generatedClassMetaData,
+						KotlinJaxRsBodyParser.INSTANCE,
+						ComparisonBuilder.JAVA_HTTP_INSTANCE));
 	}
 
 	public KotlinSingleMethodBuilder messaging() {
 		// @formatter:off
-		return given(new MessagingGiven(this.blockBuilder, this.generatedClassMetaData, JavaMessagingBodyParser.INSTANCE))
-				.when(new MessagingWhen(this.blockBuilder))
-				.then(new MessagingWithBodyThen(this.blockBuilder,
+		return given(new MessagingGiven(this.methodBodyWriter, this.generatedClassMetaData, JavaMessagingBodyParser.INSTANCE))
+				.when(new MessagingWhen(this.methodBodyWriter))
+				.then(new MessagingWithBodyThen(this.methodBodyWriter,
 						this.generatedClassMetaData, ComparisonBuilder.JAVA_MESSAGING_INSTANCE));
 		// @formatter:on
 	}
@@ -125,11 +128,6 @@ class KotlinSingleMethodBuilder implements SingleMethodBuilder {
 	public KotlinSingleMethodBuilder then(Then... then) {
 		this.thens.addAll(Arrays.asList(then));
 		return this;
-	}
-
-	@Override
-	public BlockBuilder getBlockBuilder() {
-		return this.blockBuilder;
 	}
 
 	@Override
@@ -169,24 +167,17 @@ class KotlinSingleMethodBuilder implements SingleMethodBuilder {
 			}
 			// (indent) when
 			visit(this.whens, metaData);
-			this.blockBuilder.addEmptyLine();
 			// (indent) then
 			visit(this.thens, metaData);
 		});
-		this.blockBuilder.addEmptyLine();
 		// }
+		this.blockBuilder.addEmptyLine();
 		// @formatter:on
 	}
 
 	@Override
-	public SingleMethodBuilder variable(String name, String className) {
-		// @formatter:off
-		// val foo
-		this.blockBuilder
-				.addIndented("val")
-				.appendWithSpace(name);
-		// @formatter:on
-		return this;
+	public BlockBuilder blockBuilder() {
+		return this.blockBuilder;
 	}
 
 	private MethodMetadata pickMetadatum() {
@@ -207,12 +198,9 @@ class KotlinSingleMethodBuilder implements SingleMethodBuilder {
 		Iterator<? extends MethodVisitor> iterator = visitors.iterator();
 		while (iterator.hasNext()) {
 			MethodVisitor visitor = iterator.next();
-			visitor.apply(metaData, this);
+			visitor.apply(metaData);
 			if (addLineEnding) {
 				this.blockBuilder.addEndingIfNotPresent();
-			}
-			if (iterator.hasNext()) {
-				this.blockBuilder.addEmptyLine();
 			}
 		}
 		return !visitors.isEmpty();

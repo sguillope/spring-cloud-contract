@@ -27,6 +27,7 @@ import org.springframework.cloud.contract.verifier.config.ContractVerifierConfig
 import org.springframework.cloud.contract.verifier.config.TestFramework
 import org.springframework.cloud.contract.verifier.config.TestMode
 import org.springframework.cloud.contract.verifier.file.ContractMetadata
+import org.springframework.cloud.contract.verifier.util.KotlinPluginsAvailabilityChecker
 import org.springframework.cloud.contract.verifier.util.SyntaxChecker
 
 /**
@@ -56,9 +57,9 @@ class KotlinMessagingMethodBodyBuilderSpec extends Specification {
 
 	Boolean setKotlinSupportMaven(boolean newValue) throws Exception {
 		Boolean previousValue = null
-		Arrays.stream(KotlinClassMetaData.class.getDeclaredFields())
+		Arrays.stream(KotlinPluginsAvailabilityChecker.class.getDeclaredFields())
 				.filter({ f -> Modifier.isStatic(f.getModifiers()) })
-				.filter({ f -> ("kotlinSupportMaven" == f.name) })
+				.filter({ f -> ("mavenSupport" == f.name) })
 				.findFirst()
 		.ifPresent({ field ->
 			field.setAccessible(true)
@@ -316,7 +317,6 @@ class FooTest {
 \t\t// when:
 \t\t\tcontractVerifierMessaging.send(inputMessage, "jms:delete")
 \t\t\tbookWasDeleted()
-
 \t}
 
 }

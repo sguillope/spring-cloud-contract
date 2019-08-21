@@ -26,25 +26,23 @@ import static org.springframework.cloud.contract.verifier.util.ContentType.XML;
 
 class GenericXmlBodyThen implements Then {
 
-	private final BlockBuilder blockBuilder;
-
 	private final BodyParser bodyParser;
 
-	GenericXmlBodyThen(BlockBuilder blockBuilder, BodyParser bodyParser) {
-		this.blockBuilder = blockBuilder;
+	protected final MethodBodyWriter methodBodyWriter;
+
+	GenericXmlBodyThen(MethodBodyWriter methodBodyWriter, BodyParser bodyParser) {
+		this.methodBodyWriter = methodBodyWriter;
 		this.bodyParser = bodyParser;
 	}
 
 	@Override
-	public MethodVisitor<Then> apply(SingleContractMetadata metadata,
-			SingleMethodBuilder methodBuilder) {
+	public MethodVisitor<Then> apply(SingleContractMetadata metadata) {
 		BodyMatchers bodyMatchers = this.bodyParser.responseBodyMatchers(metadata);
 		Object convertedResponseBody = this.bodyParser.convertResponseBody(metadata);
 		XmlBodyVerificationBuilder xmlBodyVerificationBuilder = new XmlBodyVerificationBuilder(
-				metadata.getContract(), Optional.of(this.blockBuilder.getLineEnding()));
-		xmlBodyVerificationBuilder.addXmlResponseBodyCheck(this.blockBuilder,
-				methodBuilder, convertedResponseBody, bodyMatchers,
-				this.bodyParser.responseAsString(), true);
+				methodBodyWriter);
+		xmlBodyVerificationBuilder.addXmlResponseBodyCheck(convertedResponseBody,
+				bodyMatchers, this.bodyParser.responseAsString());
 		return this;
 	}
 

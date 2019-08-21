@@ -24,29 +24,27 @@ import org.springframework.cloud.contract.verifier.file.SingleContractMetadata;
 
 class MessagingWithBodyThen implements Then, BodyMethodVisitor {
 
-	private final BlockBuilder blockBuilder;
-
 	private final List<Then> thens = new LinkedList<>();
 
-	MessagingWithBodyThen(BlockBuilder blockBuilder,
+	protected final MethodBodyWriter methodBodyWriter;
+
+	MessagingWithBodyThen(MethodBodyWriter methodBodyWriter,
 			GeneratedClassMetaData generatedClassMetaData,
 			ComparisonBuilder comparisonBuilder) {
-		this.blockBuilder = blockBuilder;
+		this.methodBodyWriter = methodBodyWriter;
 		this.thens.addAll(Arrays.asList(
-				new MessagingSpockNoMessageThen(this.blockBuilder,
-						generatedClassMetaData),
-				new MessagingReceiveMessageThen(this.blockBuilder, comparisonBuilder),
-				new MessagingHeadersThen(this.blockBuilder, comparisonBuilder),
-				new MessagingBodyThen(this.blockBuilder, generatedClassMetaData,
+				new MessagingSpockNoMessageThen(methodBodyWriter, generatedClassMetaData),
+				new MessagingReceiveMessageThen(methodBodyWriter, comparisonBuilder),
+				new MessagingHeadersThen(methodBodyWriter, comparisonBuilder),
+				new MessagingBodyThen(methodBodyWriter, generatedClassMetaData,
 						comparisonBuilder),
-				new MessagingAssertThatThen(this.blockBuilder)));
+				new MessagingAssertThatThen(methodBodyWriter)));
 	}
 
 	@Override
-	public MethodVisitor<Then> apply(SingleContractMetadata singleContractMetadata,
-			SingleMethodBuilder methodBuilder) {
-		startBodyBlock(this.blockBuilder, "then:");
-		bodyBlock(this.blockBuilder, this.thens, singleContractMetadata, methodBuilder);
+	public MethodVisitor<Then> apply(SingleContractMetadata singleContractMetadata) {
+		methodBodyWriter.addEmptyLine().inThenBlock(
+				() -> bodyBlock(methodBodyWriter, this.thens, singleContractMetadata));
 		return this;
 	}
 

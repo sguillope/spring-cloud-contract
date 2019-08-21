@@ -19,7 +19,7 @@ package org.springframework.cloud.contract.verifier.builder;
 /**
  * @author Tim Ysewyn
  */
-public class GeneratedTestClassMother {
+public class GeneratedTestClassProvider {
 
 	public static GeneratedTestClass generatedTestClass(String fileName, String content) {
 		return new GeneratedTestClass(fileName, content);

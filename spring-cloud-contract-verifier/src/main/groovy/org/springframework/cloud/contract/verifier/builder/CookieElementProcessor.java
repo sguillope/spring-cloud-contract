@@ -41,16 +41,14 @@ interface CookieElementProcessor {
 					cookie.getServerValue() instanceof NotToEscapePattern
 							? cookie.getServerValue()
 							: MapConverter.getTestSideValues(cookie.getServerValue()));
+			methodBodyWriter().addLine(text);
 			if (iterator.hasNext()) {
-				blockBuilder().addLine(text).addEndingIfNotPresent();
-			}
-			else {
-				blockBuilder().addIndented(text).addEndingIfNotPresent();
+				methodBodyWriter().addNewLine();
 			}
 		}
 	}
 
-	BlockBuilder blockBuilder();
+	MethodBodyWriter methodBodyWriter();
 
 	default String processCookieElement(String property, Object value) {
 		if (value instanceof NotToEscapePattern) {
@@ -79,8 +77,8 @@ interface CookieElementProcessor {
 	}
 
 	default void verifyCookieNotNull(String key) {
-		blockBuilder().addLineWithEnding(
-				comparisonBuilder().assertThatIsNotNull(cookieKey(key)));
+		methodBodyWriter()
+				.addLine(comparisonBuilder().assertThatIsNotNull(cookieKey(key)));
 	}
 
 	String cookieKey(String key);

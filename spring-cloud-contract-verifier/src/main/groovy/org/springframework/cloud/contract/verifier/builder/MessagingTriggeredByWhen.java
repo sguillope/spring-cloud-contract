@@ -20,18 +20,16 @@ import org.springframework.cloud.contract.verifier.file.SingleContractMetadata;
 
 class MessagingTriggeredByWhen implements When {
 
-	private final BlockBuilder blockBuilder;
+	protected final MethodBodyWriter methodBodyWriter;
 
-	MessagingTriggeredByWhen(BlockBuilder blockBuilder) {
-		this.blockBuilder = blockBuilder;
+	MessagingTriggeredByWhen(MethodBodyWriter methodBodyWriter) {
+		this.methodBodyWriter = methodBodyWriter;
 	}
 
 	@Override
-	public MethodVisitor<When> apply(SingleContractMetadata metadata,
-			SingleMethodBuilder methodBuilder) {
-		this.blockBuilder.addIndented(
-				metadata.getContract().getInput().getTriggeredBy().getExecutionCommand())
-				.addEndingIfNotPresent();
+	public MethodVisitor<When> apply(SingleContractMetadata metadata) {
+		methodBodyWriter.addLine(
+				metadata.getContract().getInput().getTriggeredBy().getExecutionCommand());
 		return this;
 	}
 

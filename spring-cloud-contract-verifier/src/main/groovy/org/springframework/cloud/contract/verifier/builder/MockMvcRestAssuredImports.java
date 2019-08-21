@@ -39,7 +39,7 @@ class MockMvcRestAssuredImports implements Imports, RestAssuredVerifier {
 	}
 
 	@Override
-	public List<String> fqns() {
+	public List<String> fullyQualifiedDomainNames() {
 		return Arrays.asList(isRestAssured2Present() ? REST_ASSURED_2_IMPORTS
 				: REST_ASSURED_3_IMPORTS);
 	}

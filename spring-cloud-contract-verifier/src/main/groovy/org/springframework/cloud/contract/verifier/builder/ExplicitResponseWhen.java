@@ -20,20 +20,27 @@ import org.springframework.cloud.contract.verifier.file.SingleContractMetadata;
 
 class ExplicitResponseWhen implements When, ExplicitAcceptor {
 
-	private final BlockBuilder blockBuilder;
-
 	private final GeneratedClassMetaData generatedClassMetaData;
 
-	ExplicitResponseWhen(BlockBuilder blockBuilder, GeneratedClassMetaData metaData) {
-		this.blockBuilder = blockBuilder;
-		this.generatedClassMetaData = metaData;
+	protected final MethodBodyWriter methodBodyWriter;
+
+	ExplicitResponseWhen(MethodBodyWriter methodBodyWriter,
+			GeneratedClassMetaData generatedClassMetaData) {
+		this.methodBodyWriter = methodBodyWriter;
+		this.generatedClassMetaData = generatedClassMetaData;
 	}
 
 	@Override
-	public MethodVisitor<When> apply(SingleContractMetadata metadata,
-			SingleMethodBuilder methodBuilder) {
-		methodBuilder.variable("response", "Response");
-		this.blockBuilder.appendWithSpace("= given().spec(request)");
+	public MethodVisitor<When> apply(SingleContractMetadata metadata) {
+		// @formatter:off
+		methodBodyWriter
+				.declareVariable("response", "Response")
+				.assignValue()
+				.withMethodCall("given").closeCallAnd()
+				.continueWithNewMethodCall("spec")
+					.withParameter("request")
+				.closeCall();
+		// @formatter:on
 		return this;
 	}
 

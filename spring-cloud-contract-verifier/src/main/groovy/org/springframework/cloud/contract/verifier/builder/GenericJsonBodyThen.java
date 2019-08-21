@@ -27,7 +27,6 @@ import org.apache.commons.text.StringEscapeUtils;
 import org.springframework.cloud.contract.spec.ContractTemplate;
 import org.springframework.cloud.contract.spec.internal.BodyMatchers;
 import org.springframework.cloud.contract.spec.internal.ExecutionProperty;
-import org.springframework.cloud.contract.verifier.config.TestFramework;
 import org.springframework.cloud.contract.verifier.file.SingleContractMetadata;
 import org.springframework.cloud.contract.verifier.template.HandlebarsTemplateProcessor;
 import org.springframework.cloud.contract.verifier.template.TemplateProcessor;
@@ -42,8 +41,6 @@ import static org.springframework.cloud.contract.verifier.util.ContentType.TEXT;
 
 class GenericJsonBodyThen implements Then {
 
-	private final BlockBuilder blockBuilder;
-
 	private final GeneratedClassMetaData generatedClassMetaData;
 
 	private final BodyParser bodyParser;
@@ -54,20 +51,23 @@ class GenericJsonBodyThen implements Then {
 
 	private final ContractTemplate contractTemplate;
 
-	GenericJsonBodyThen(BlockBuilder blockBuilder, GeneratedClassMetaData metaData,
-			BodyParser bodyParser, ComparisonBuilder comparisonBuilder) {
-		this.blockBuilder = blockBuilder;
+	protected final MethodBodyWriter methodBodyWriter;
+
+	GenericJsonBodyThen(MethodBodyWriter methodBodyWriter,
+			GeneratedClassMetaData metaData, BodyParser bodyParser,
+			ComparisonBuilder comparisonBuilder) {
+		this.methodBodyWriter = methodBodyWriter;
 		this.bodyParser = bodyParser;
-		this.bodyAssertionLineCreator = new BodyAssertionLineCreator(blockBuilder,
-				metaData, this.bodyParser.byteArrayString(), comparisonBuilder);
+		this.bodyAssertionLineCreator = new BodyAssertionLineCreator(
+				methodBodyWriter.blockBuilder(), metaData,
+				this.bodyParser.byteArrayString(), comparisonBuilder);
 		this.generatedClassMetaData = metaData;
 		this.templateProcessor = new HandlebarsTemplateProcessor();
 		this.contractTemplate = new HandlebarsTemplateProcessor();
 	}
 
 	@Override
-	public MethodVisitor<Then> apply(SingleContractMetadata metadata,
-			SingleMethodBuilder methodBuilder) {
+	public MethodVisitor<Then> apply(SingleContractMetadata metadata) {
 		BodyMatchers bodyMatchers = this.bodyParser.responseBodyMatchers(metadata);
 		Object convertedResponseBody = this.bodyParser.convertResponseBody(metadata);
 		ContentType contentType = metadata.getOutputTestContentType();
@@ -83,30 +83,23 @@ class GenericJsonBodyThen implements Then {
 			convertedResponseBody = StringEscapeUtils
 					.escapeJava(convertedResponseBody.toString());
 		}
-		addJsonBodyVerification(metadata, methodBuilder, convertedResponseBody,
-				bodyMatchers);
+		addJsonBodyVerification(metadata, convertedResponseBody, bodyMatchers);
 		return this;
 	}
 
 	private void addJsonBodyVerification(SingleContractMetadata contractMetadata,
-			SingleMethodBuilder methodBuilder, Object responseBody,
-			BodyMatchers bodyMatchers) {
+			Object responseBody, BodyMatchers bodyMatchers) {
 		JsonBodyVerificationBuilder jsonBodyVerificationBuilder = new JsonBodyVerificationBuilder(
+				this.methodBodyWriter,
 				this.generatedClassMetaData.configProperties.getAssertJsonSize(),
 				this.templateProcessor, this.contractTemplate,
-				contractMetadata.getContract(),
-				Optional.of(this.blockBuilder.getLineEnding()),
-				bodyParser::postProcessJsonPath);
-		// TODO: Refactor spock from should comment out bdd blocks
+				contractMetadata.getContract(), bodyParser::postProcessJsonPath);
 		Object convertedResponseBody = jsonBodyVerificationBuilder
-				.addJsonResponseBodyCheck(this.blockBuilder, methodBuilder, responseBody,
-						bodyMatchers, this.bodyParser.responseAsString(),
-						this.generatedClassMetaData.configProperties
-								.getTestFramework() != TestFramework.SPOCK);
+				.addJsonResponseBodyCheck(responseBody, bodyMatchers,
+						this.bodyParser.responseAsString());
 		if (!(convertedResponseBody instanceof Map
 				|| convertedResponseBody instanceof List)) {
-			simpleTextResponseBodyCheck(contractMetadata, methodBuilder,
-					convertedResponseBody);
+			simpleTextResponseBodyCheck(contractMetadata, convertedResponseBody);
 		}
 		processBodyElement("", "", convertedResponseBody);
 	}
@@ -130,7 +123,7 @@ class GenericJsonBodyThen implements Then {
 	}
 
 	private void processBodyElement(String property, ExecutionProperty exec) {
-		this.blockBuilder.addLineWithEnding(exec.insertValue(this.bodyParser
+		methodBodyWriter.blockBuilder().addLineWithEnding(exec.insertValue(this.bodyParser
 				.postProcessJsonPath("parsedJson.read(\"$" + property + "\")")));
 	}
 
@@ -194,19 +187,12 @@ class GenericJsonBodyThen implements Then {
 	}
 
 	private void simpleTextResponseBodyCheck(SingleContractMetadata metadata,
-			SingleMethodBuilder methodBuilder, Object convertedResponseBody) {
-		methodBuilder.variable("responseBody", "String");
-		this.blockBuilder
-				.appendWithSpace(
-						getSimpleResponseBodyString(this.bodyParser.responseAsString()))
-				.addEndingIfNotPresent().addEmptyLine();
+			Object convertedResponseBody) {
+		methodBodyWriter.declareVariable("responseBody", "String")
+				.assignValue(this.bodyParser.responseAsString());
 		this.bodyAssertionLineCreator.appendBodyAssertionLine(metadata, "",
 				convertedResponseBody);
-		this.blockBuilder.addEndingIfNotPresent();
-	}
-
-	private String getSimpleResponseBodyString(String responseString) {
-		return "= " + responseString;
+		methodBodyWriter.addEndingIfNotPresent();
 	}
 
 	@Override

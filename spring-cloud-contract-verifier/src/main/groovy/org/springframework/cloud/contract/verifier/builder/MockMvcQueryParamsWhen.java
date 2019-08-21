@@ -31,18 +31,17 @@ class MockMvcQueryParamsWhen implements When, MockMvcAcceptor, QueryParamsResolv
 
 	private static final String QUERY_PARAM_METHOD = "queryParam";
 
-	private final BlockBuilder blockBuilder;
-
 	private final BodyParser bodyParser;
 
-	MockMvcQueryParamsWhen(BlockBuilder blockBuilder, BodyParser bodyParser) {
-		this.blockBuilder = blockBuilder;
+	protected final MethodBodyWriter methodBodyWriter;
+
+	MockMvcQueryParamsWhen(MethodBodyWriter methodBodyWriter, BodyParser bodyParser) {
+		this.methodBodyWriter = methodBodyWriter;
 		this.bodyParser = bodyParser;
 	}
 
 	@Override
-	public MethodVisitor<When> apply(SingleContractMetadata metadata,
-			SingleMethodBuilder methodBuilder) {
+	public MethodVisitor<When> apply(SingleContractMetadata metadata) {
 		Request request = metadata.getContract().getRequest();
 		Url url = getUrl(request);
 		addQueryParameters(url);
@@ -66,12 +65,17 @@ class MockMvcQueryParamsWhen implements When, MockMvcAcceptor, QueryParamsResolv
 		Iterator<QueryParameter> iterator = queryParameters.iterator();
 		while (iterator.hasNext()) {
 			QueryParameter parameter = iterator.next();
-			String text = addQueryParameter(parameter);
+			// @formatter:off
+			methodBodyWriter
+					.withIndentation()
+					.continueWithNewMethodCall(QUERY_PARAM_METHOD)
+						.withParameter(this.bodyParser.quotedLongText(parameter.getName()))
+						.withParameter(this.bodyParser.quotedLongText(resolveParamValue(
+								MapConverter.getTestSideValuesForNonBody(parameter))))
+					.closeCall();
+			// @formatter:on
 			if (iterator.hasNext()) {
-				this.blockBuilder.addLine(text);
-			}
-			else {
-				this.blockBuilder.addIndented(text);
+				methodBodyWriter.addEmptyLine();
 			}
 		}
 	}
@@ -84,14 +88,6 @@ class MockMvcQueryParamsWhen implements When, MockMvcAcceptor, QueryParamsResolv
 			return !MatchingStrategy.Type.ABSENT.equals(((MatchingStrategy) o).getType());
 		}
 		return true;
-	}
-
-	private String addQueryParameter(QueryParameter queryParam) {
-		return "." + QUERY_PARAM_METHOD + "("
-				+ this.bodyParser.quotedLongText(queryParam.getName()) + ","
-				+ this.bodyParser.quotedLongText(resolveParamValue(
-						MapConverter.getTestSideValuesForNonBody(queryParam)))
-				+ ")";
 	}
 
 	@Override

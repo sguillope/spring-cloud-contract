@@ -21,20 +21,19 @@ import org.springframework.cloud.contract.verifier.file.SingleContractMetadata;
 
 class MessagingSpockNoMessageThen implements Then, BodyMethodVisitor {
 
-	private final BlockBuilder blockBuilder;
-
 	private final GeneratedClassMetaData generatedClassMetaData;
 
-	MessagingSpockNoMessageThen(BlockBuilder blockBuilder,
+	protected final MethodBodyWriter methodBodyWriter;
+
+	MessagingSpockNoMessageThen(MethodBodyWriter methodBodyWriter,
 			GeneratedClassMetaData generatedClassMetaData) {
-		this.blockBuilder = blockBuilder;
+		this.methodBodyWriter = methodBodyWriter;
 		this.generatedClassMetaData = generatedClassMetaData;
 	}
 
 	@Override
-	public MethodVisitor<Then> apply(SingleContractMetadata singleContractMetadata,
-			SingleMethodBuilder methodBuilder) {
-		this.blockBuilder.addLineWithEnding("noExceptionThrown()");
+	public MethodVisitor<Then> apply(SingleContractMetadata singleContractMetadata) {
+		methodBodyWriter.addLine("noExceptionThrown()");
 		return this;
 	}
 

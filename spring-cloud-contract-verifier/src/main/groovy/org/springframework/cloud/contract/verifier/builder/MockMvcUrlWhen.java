@@ -24,22 +24,39 @@ import org.springframework.cloud.contract.verifier.util.MapConverter;
 
 class MockMvcUrlWhen implements When, MockMvcAcceptor, QueryParamsResolver {
 
-	private final BlockBuilder blockBuilder;
-
 	private final BodyParser bodyParser;
 
-	MockMvcUrlWhen(BlockBuilder blockBuilder, BodyParser bodyParser) {
-		this.blockBuilder = blockBuilder;
+	protected final MethodBodyWriter methodBodyWriter;
+
+	MockMvcUrlWhen(MethodBodyWriter methodBodyWriter, BodyParser bodyParser) {
+		this.methodBodyWriter = methodBodyWriter;
 		this.bodyParser = bodyParser;
 	}
 
 	@Override
-	public MethodVisitor<When> apply(SingleContractMetadata metadata,
-			SingleMethodBuilder methodBuilder) {
+	public MethodVisitor<When> apply(SingleContractMetadata metadata) {
 		Request request = metadata.getContract().getRequest();
-		Url url = getUrl(request);
-		addUrl(url, request);
+		// @formatter:off
+		methodBodyWriter
+				.withIndentation()
+				.continueWithNewMethodCall(requestMethod(request))
+					.withParameter(urlFrom(request))
+				.closeCall();
+		// @formatter:on
 		return this;
+	}
+
+	private String requestMethod(Request request) {
+		return request.getMethod().getServerValue().toString().toLowerCase();
+	}
+
+	private String urlFrom(Request request) {
+		Url url = getUrl(request);
+		Object testSideUrl = MapConverter.getTestSideValues(url);
+		if (!(testSideUrl instanceof ExecutionProperty)) {
+			return this.bodyParser.quotedShortText(testSideUrl.toString());
+		}
+		return testSideUrl.toString();
 	}
 
 	private Url getUrl(Request request) {
@@ -50,16 +67,6 @@ class MockMvcUrlWhen implements When, MockMvcAcceptor, QueryParamsResolver {
 			return request.getUrlPath();
 		}
 		throw new IllegalStateException("URL is not set!");
-	}
-
-	private void addUrl(Url buildUrl, Request request) {
-		Object testSideUrl = MapConverter.getTestSideValues(buildUrl);
-		String method = request.getMethod().getServerValue().toString().toLowerCase();
-		String url = testSideUrl.toString();
-		if (!(testSideUrl instanceof ExecutionProperty)) {
-			url = this.bodyParser.quotedShortText(testSideUrl.toString());
-		}
-		this.blockBuilder.addIndented("." + method + "(" + url + ")");
 	}
 
 	@Override

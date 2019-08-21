@@ -19,38 +19,42 @@ package org.springframework.cloud.contract.verifier.builder;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.cloud.contract.verifier.file.SingleContractMetadata;
 
-class MessagingBodyThen implements Then, BodyMethodVisitor {
+import static java.util.stream.Collectors.toList;
 
-	private final BlockBuilder blockBuilder;
+class MessagingBodyThen implements Then, BodyMethodVisitor {
 
 	private final List<Then> thens = new LinkedList<>();
 
 	private final BodyParser bodyParser;
 
-	MessagingBodyThen(BlockBuilder blockBuilder, GeneratedClassMetaData metaData,
+	protected final MethodBodyWriter methodBodyWriter;
+
+	MessagingBodyThen(MethodBodyWriter methodBodyWriter, GeneratedClassMetaData metaData,
 			ComparisonBuilder comparisonBuilder) {
-		this.blockBuilder = blockBuilder;
+		this.methodBodyWriter = methodBodyWriter;
 		this.bodyParser = comparisonBuilder.bodyParser();
 		this.thens.addAll(Arrays.asList(
-				new GenericBinaryBodyThen(blockBuilder, metaData, this.bodyParser,
+				new GenericBinaryBodyThen(methodBodyWriter, metaData, this.bodyParser,
 						comparisonBuilder),
-				new GenericTextBodyThen(blockBuilder, metaData, this.bodyParser,
+				new GenericTextBodyThen(methodBodyWriter, metaData, this.bodyParser,
 						comparisonBuilder),
-				new GenericJsonBodyThen(blockBuilder, metaData, this.bodyParser,
+				new GenericJsonBodyThen(methodBodyWriter, metaData, this.bodyParser,
 						comparisonBuilder),
-				new GenericXmlBodyThen(blockBuilder, this.bodyParser)));
+				new GenericXmlBodyThen(methodBodyWriter, this.bodyParser)));
 	}
 
 	@Override
-	public MethodVisitor<Then> apply(SingleContractMetadata singleContractMetadata,
-			SingleMethodBuilder methodBuilder) {
-		endBodyBlock(this.blockBuilder);
-		startBodyBlock(this.blockBuilder, "and:");
-		this.thens.stream().filter(then -> then.accept(singleContractMetadata))
-				.forEach(then -> then.apply(singleContractMetadata, methodBuilder));
+	public MethodVisitor<Then> apply(SingleContractMetadata singleContractMetadata) {
+		List<Then> thens = this.thens.stream()
+				.filter(then -> then.accept(singleContractMetadata)).collect(toList());
+		if (!thens.isEmpty()) {
+			methodBodyWriter.inAndBlock(
+					() -> thens.forEach(then -> then.apply(singleContractMetadata)));
+		}
 		return this;
 	}
 

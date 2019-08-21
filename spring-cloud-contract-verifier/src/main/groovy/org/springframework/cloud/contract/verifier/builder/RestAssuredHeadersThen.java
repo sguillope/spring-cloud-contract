@@ -28,19 +28,18 @@ import org.springframework.cloud.contract.verifier.util.MapConverter;
 
 class RestAssuredHeadersThen implements Then, MockMvcAcceptor {
 
-	private final BlockBuilder blockBuilder;
-
 	private final ComparisonBuilder comparisonBuilder;
 
-	RestAssuredHeadersThen(BlockBuilder blockBuilder,
+	protected final MethodBodyWriter methodBodyWriter;
+
+	RestAssuredHeadersThen(MethodBodyWriter methodBodyWriter,
 			ComparisonBuilder comparisonBuilder) {
-		this.blockBuilder = blockBuilder;
+		this.methodBodyWriter = methodBodyWriter;
 		this.comparisonBuilder = comparisonBuilder;
 	}
 
 	@Override
-	public MethodVisitor<Then> apply(SingleContractMetadata metadata,
-			SingleMethodBuilder methodBuilder) {
+	public MethodVisitor<Then> apply(SingleContractMetadata metadata) {
 		Response response = metadata.getContract().getResponse();
 		Headers headers = response.getHeaders();
 		Iterator<Header> iterator = headers.getEntries().iterator();
@@ -50,14 +49,11 @@ class RestAssuredHeadersThen implements Then, MockMvcAcceptor {
 					header.getServerValue() instanceof NotToEscapePattern
 							? header.getServerValue()
 							: MapConverter.getTestSideValues(header.getServerValue()));
+			methodBodyWriter.addLine(text);
 			if (iterator.hasNext()) {
-				this.blockBuilder.addLineWithEnding(text);
-			}
-			else {
-				this.blockBuilder.addIndented(text);
+				methodBodyWriter.addNewLine();
 			}
 		}
-		this.blockBuilder.addEndingIfNotPresent();
 		return this;
 	}
 

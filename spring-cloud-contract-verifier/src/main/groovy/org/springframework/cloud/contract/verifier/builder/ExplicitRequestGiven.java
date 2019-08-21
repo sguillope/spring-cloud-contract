@@ -20,20 +20,20 @@ import org.springframework.cloud.contract.verifier.file.SingleContractMetadata;
 
 class ExplicitRequestGiven implements Given, ExplicitAcceptor {
 
-	private final BlockBuilder blockBuilder;
-
 	private final GeneratedClassMetaData generatedClassMetaData;
 
-	ExplicitRequestGiven(BlockBuilder blockBuilder, GeneratedClassMetaData metaData) {
-		this.blockBuilder = blockBuilder;
-		this.generatedClassMetaData = metaData;
+	protected final MethodBodyWriter methodBodyWriter;
+
+	ExplicitRequestGiven(MethodBodyWriter methodBodyWriter,
+			GeneratedClassMetaData generatedClassMetaData) {
+		this.methodBodyWriter = methodBodyWriter;
+		this.generatedClassMetaData = generatedClassMetaData;
 	}
 
 	@Override
-	public MethodVisitor<Given> apply(SingleContractMetadata metadata,
-			SingleMethodBuilder methodBuilder) {
-		methodBuilder.variable("request", "RequestSpecification");
-		this.blockBuilder.appendWithSpace("= given()");
+	public MethodVisitor<Given> apply(SingleContractMetadata metadata) {
+		methodBodyWriter.declareVariable("request", "RequestSpecification").assignValue()
+				.withMethodCall("given").closeCall();
 		return this;
 	}
 

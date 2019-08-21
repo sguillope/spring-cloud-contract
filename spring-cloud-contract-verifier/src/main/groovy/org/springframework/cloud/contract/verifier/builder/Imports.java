@@ -21,11 +21,11 @@ import java.util.function.Function;
 
 interface Imports extends Acceptor, Function<ClassBuilder, ClassBuilder> {
 
-	List<String> fqns();
+	List<String> fullyQualifiedDomainNames();
 
 	@Override
 	default ClassBuilder apply(ClassBuilder classBuilder) {
-		fqns().forEach(classBuilder::writeImport);
+		fullyQualifiedDomainNames().forEach(classBuilder::writeImport);
 		return classBuilder;
 	}
 

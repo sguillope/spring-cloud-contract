@@ -938,18 +938,18 @@ public class FooTest {
 
 \t\t// when:
 \t\t\tResponse response = webTarget
-\t\t\t\t\t\t\t.path("/users")
-\t\t\t\t\t\t\t.queryParam("limit", "10")
-\t\t\t\t\t\t\t.queryParam("offset", "20")
-\t\t\t\t\t\t\t.queryParam("filter", "email")
-\t\t\t\t\t\t\t.queryParam("sort", "name")
-\t\t\t\t\t\t\t.queryParam("search", "55")
-\t\t\t\t\t\t\t.queryParam("age", "99")
-\t\t\t\t\t\t\t.queryParam("name", "Denis.Stepanov")
-\t\t\t\t\t\t\t.queryParam("email", "bob@email.com")
-\t\t\t\t\t\t\t.request()
-\t\t\t\t\t\t\t.build("GET")
-\t\t\t\t\t\t\t.invoke();
+\t\t\t\t\t.path("/users")
+\t\t\t\t\t.queryParam("limit", "10")
+\t\t\t\t\t.queryParam("offset", "20")
+\t\t\t\t\t.queryParam("filter", "email")
+\t\t\t\t\t.queryParam("sort", "name")
+\t\t\t\t\t.queryParam("search", "55")
+\t\t\t\t\t.queryParam("age", "99")
+\t\t\t\t\t.queryParam("name", "Denis.Stepanov")
+\t\t\t\t\t.queryParam("email", "bob@email.com")
+\t\t\t\t\t.request()
+\t\t\t\t\t.build("GET")
+\t\t\t\t\t.invoke();
 \t\t\tString responseAsString = response.readEntity(String.class);
 
 \t\t// then:

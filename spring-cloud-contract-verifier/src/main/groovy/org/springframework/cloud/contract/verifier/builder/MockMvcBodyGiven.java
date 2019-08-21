@@ -24,27 +24,21 @@ import org.springframework.cloud.contract.verifier.util.ContentType;
 
 class MockMvcBodyGiven implements Given {
 
-	private final BlockBuilder blockBuilder;
-
 	private final BodyReader bodyReader;
 
 	private final BodyParser bodyParser;
 
-	MockMvcBodyGiven(BlockBuilder blockBuilder,
+	protected final MethodBodyWriter methodBodyWriter;
+
+	MockMvcBodyGiven(MethodBodyWriter methodBodyWriter,
 			GeneratedClassMetaData generatedClassMetaData, BodyParser bodyParser) {
-		this.blockBuilder = blockBuilder;
+		this.methodBodyWriter = methodBodyWriter;
 		this.bodyReader = new BodyReader(generatedClassMetaData);
 		this.bodyParser = bodyParser;
 	}
 
 	@Override
-	public MethodVisitor<Given> apply(SingleContractMetadata metadata,
-			SingleMethodBuilder methodBuilder) {
-		processInput(this.blockBuilder, metadata);
-		return this;
-	}
-
-	private void processInput(BlockBuilder bb, SingleContractMetadata metadata) {
+	public MethodVisitor<Given> apply(SingleContractMetadata metadata) {
 		Object body;
 		Request request = metadata.getContract().getRequest();
 		Object serverValue = request.getBody().getServerValue();
@@ -55,27 +49,40 @@ class MockMvcBodyGiven implements Given {
 		else {
 			body = this.bodyParser.requestBodyAsString(metadata);
 		}
-		bb.addIndented(getBodyString(metadata, body));
+		// @formatter:off
+		methodBodyWriter
+				.withIndentation()
+				.continueWithNewMethodCall("body")
+					.withParameter(() -> writeBody(metadata, body)).closeCallAnd()
+				.addEmptyLine();
+		// @formatter:on
+		return this;
 	}
 
-	private String getBodyString(SingleContractMetadata metadata, Object body) {
-		String value;
+	private void writeBody(SingleContractMetadata metadata, Object body) {
 		if (body instanceof ExecutionProperty) {
-			value = body.toString();
+			methodBodyWriter.append(body.toString());
 		}
 		else if (body instanceof FromFileProperty) {
 			FromFileProperty fileProperty = (FromFileProperty) body;
-			value = fileProperty.isByte()
-					? this.bodyReader.readBytesFromFileString(metadata, fileProperty,
-							CommunicationType.REQUEST)
-					: this.bodyReader.readStringFromFileString(metadata, fileProperty,
-							CommunicationType.REQUEST);
+			String fileContent = this.bodyReader.readBytesFromFileString(metadata,
+					fileProperty, CommunicationType.REQUEST);
+			if (fileProperty.isByte()) {
+				methodBodyWriter.append(fileContent);
+			}
+			else {
+				// @formatter:off
+				methodBodyWriter
+						.createInstanceOf("String")
+							.withArgument(fileContent)
+						.instantiate();
+				// @formatter:on
+			}
 		}
 		else {
 			String escaped = escapeRequestSpecialChars(metadata, body.toString());
-			value = this.bodyParser.quotedEscapedLongText(escaped);
+			methodBodyWriter.append(this.bodyParser.quotedEscapedLongText(escaped));
 		}
-		return ".body(" + value + ")";
 	}
 
 	private String escapeRequestSpecialChars(SingleContractMetadata metadata,

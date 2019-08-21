@@ -21,22 +21,21 @@ import org.springframework.cloud.contract.verifier.file.SingleContractMetadata;
 
 class JaxRsResponseCookiesThen implements Then, MockMvcAcceptor, CookieElementProcessor {
 
-	private final BlockBuilder blockBuilder;
-
 	private final ComparisonBuilder comparisonBuilder;
 
 	private final BodyParser bodyParser;
 
-	JaxRsResponseCookiesThen(BlockBuilder blockBuilder,
+	protected final MethodBodyWriter methodBodyWriter;
+
+	JaxRsResponseCookiesThen(MethodBodyWriter methodBodyWriter,
 			ComparisonBuilder comparisonBuilder) {
-		this.blockBuilder = blockBuilder;
+		this.methodBodyWriter = methodBodyWriter;
 		this.comparisonBuilder = comparisonBuilder;
 		this.bodyParser = comparisonBuilder.bodyParser();
 	}
 
 	@Override
-	public MethodVisitor<Then> apply(SingleContractMetadata metadata,
-			SingleMethodBuilder methodBuilder) {
+	public MethodVisitor<Then> apply(SingleContractMetadata metadata) {
 		processCookies(metadata);
 		return this;
 	}
@@ -47,8 +46,8 @@ class JaxRsResponseCookiesThen implements Then, MockMvcAcceptor, CookieElementPr
 	}
 
 	@Override
-	public BlockBuilder blockBuilder() {
-		return this.blockBuilder;
+	public MethodBodyWriter methodBodyWriter() {
+		return methodBodyWriter;
 	}
 
 	@Override

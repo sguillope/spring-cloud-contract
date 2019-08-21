@@ -1,9 +1,7 @@
 package org.springframework.cloud.contract.verifier.builder;
 
 import java.util.List;
-import java.util.Optional;
 
-import org.springframework.cloud.contract.spec.Contract;
 import org.springframework.cloud.contract.spec.internal.BodyMatcher;
 import org.springframework.cloud.contract.spec.internal.BodyMatchers;
 import org.springframework.cloud.contract.spec.internal.ExecutionProperty;
@@ -17,61 +15,54 @@ import org.springframework.cloud.contract.verifier.util.xml.XmlToXPathsConverter
  */
 class XmlBodyVerificationBuilder implements BodyMethodGeneration {
 
-	private final Contract contract;
+	protected final MethodBodyWriter methodBodyWriter;
 
-	private final Optional<String> lineSuffix;
-
-	XmlBodyVerificationBuilder(Contract contract, Optional<String> lineSuffix) {
-		this.contract = contract;
-		this.lineSuffix = lineSuffix;
+	XmlBodyVerificationBuilder(MethodBodyWriter methodBodyWriter) {
+		this.methodBodyWriter = methodBodyWriter;
 	}
 
-	void addXmlResponseBodyCheck(BlockBuilder blockBuilder,
-			SingleMethodBuilder methodBuilder, Object responseBody,
-			BodyMatchers bodyMatchers, String responseString,
-			boolean shouldCommentOutBDDBlocks) {
-		addXmlProcessingLines(blockBuilder, methodBuilder, responseString);
+	void addXmlResponseBodyCheck(Object responseBody, BodyMatchers bodyMatchers,
+			String responseString) {
+		addXmlProcessingLines(responseString);
 		Object processedBody = XmlToXPathsConverter.removeMatchingXPaths(responseBody,
 				bodyMatchers);
-		List<BodyMatcher> matchers = new XmlToXPathsConverter()
-				.mapToMatchers(processedBody);
+		List<BodyMatcher> matchers = XmlToXPathsConverter.mapToMatchers(processedBody);
 		if (bodyMatchers != null && bodyMatchers.hasMatchers()) {
 			matchers.addAll(bodyMatchers.matchers());
 		}
 
-		addBodyMatchingBlock(matchers, blockBuilder, responseBody,
-				shouldCommentOutBDDBlocks);
+		addBodyMatchingBlock(matchers, methodBodyWriter, responseBody);
 	}
 
-	private void addXmlProcessingLines(final BlockBuilder blockBuilder,
-			SingleMethodBuilder methodBuilder, String responseString) {
-		methodBuilder.variable("documentBuilder", "DocumentBuilder");
-		blockBuilder
-				.appendWithSpace(
-						"= DocumentBuilderFactory.newInstance().newDocumentBuilder()")
-				.addEndingIfNotPresent().addEmptyLine();
-		methodBuilder.variable("parsedXml", "Document");
-		String value = KotlinClassMetaData.hasKotlinSupport()
-				? "documentBuilder.parse(InputSource(StringReader(" + responseString
-						+ ")))"
-				: "documentBuilder.parse(new InputSource(new StringReader("
-						+ responseString + ")))";
-		blockBuilder.appendWithSpace("=").appendWithSpace(value).addEndingIfNotPresent()
-				.addEmptyLine();
+	private void addXmlProcessingLines(String responseString) {
+		methodBodyWriter.declareVariable("documentBuilder", "DocumentBuilder")
+				.assignValue("DocumentBuilderFactory.newInstance().newDocumentBuilder()");
+		// In Java: documentBuilder.parse(new InputSource(new
+		// StringReader([responseString])));
+		// @formatter:off
+		methodBodyWriter.declareVariable("parsedXml", "Document")
+				.assignValue()
+				.usingVariable("documentBuilder")
+				.callMethod("parse")
+					.withParameter(() ->
+						methodBodyWriter.createInstanceOf("InputSource", inputSource -> inputSource.withArgument(() ->
+								methodBodyWriter.createInstanceOf("StringReader", stringReader -> stringReader.withArgument(responseString))
+						))
+					)
+				.closeCallAndEndStatement();
+		// @formatter:on
 	}
 
 	@Override
-	public void methodForNullCheck(BodyMatcher bodyMatcher, BlockBuilder bb) {
+	public void methodForNullCheck(BodyMatcher bodyMatcher) {
 		String quotedAndEscapedPath = quotedAndEscaped(bodyMatcher.path());
 		String method = "assertThat(nodeFromXPath(parsedXml, " + quotedAndEscapedPath
 				+ ")).isNull()";
-		bb.addLine(method.replace("$", "\\$"));
-		addColonIfRequired(lineSuffix, bb);
+		methodBodyWriter.addLine(method.replace("$", "\\$"));
 	}
 
 	@Override
-	public void methodForEqualityCheck(BodyMatcher bodyMatcher, BlockBuilder bb,
-			Object body) {
+	public void methodForEqualityCheck(BodyMatcher bodyMatcher, Object body) {
 		Object retrievedValue = quotedAndEscaped(
 				XmlToXPathsConverter.retrieveValue(bodyMatcher, body));
 		String comparisonMethod = bodyMatcher.matchingType().equals(MatchingType.EQUALITY)
@@ -79,23 +70,20 @@ class XmlBodyVerificationBuilder implements BodyMethodGeneration {
 		String method = "assertThat(valueFromXPath(parsedXml, "
 				+ quotedAndEscaped(bodyMatcher.path()) + "))." + comparisonMethod + "("
 				+ retrievedValue + ")";
-		bb.addLine(method.replace("$", "\\$"));
-		addColonIfRequired(lineSuffix, bb);
+		methodBodyWriter.addLine(method.replace("$", "\\$"));
 	}
 
 	@Override
-	public void methodForCommandExecution(BodyMatcher bodyMatcher, BlockBuilder bb,
-			Object body) {
-		Object retrievedValue = quotedAndEscaped(
+	public void methodForCommandExecution(BodyMatcher bodyMatcher, Object body) {
+		String retrievedValue = quotedAndEscaped(
 				XmlToXPathsConverter.retrieveValueFromBody(bodyMatcher.path(), body));
 		ExecutionProperty property = (ExecutionProperty) bodyMatcher.value();
-		bb.addLine(property.insertValue(((String) retrievedValue).replace("$", "\\$")));
-		addColonIfRequired(lineSuffix, bb);
+		methodBodyWriter
+				.addLine(property.insertValue(retrievedValue.replace("$", "\\$")));
 	}
 
 	@Override
-	public void methodForTypeCheck(BodyMatcher bodyMatcher, BlockBuilder bb,
-			Object copiedBody) {
+	public void methodForTypeCheck(BodyMatcher bodyMatcher, Object copiedBody) {
 		throw new UnsupportedOperationException(
 				"The `getNodeValue()` method in `org.w3c.dom.Node` always returns String.");
 	}

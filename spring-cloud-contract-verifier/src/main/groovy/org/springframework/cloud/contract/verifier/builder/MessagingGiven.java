@@ -24,32 +24,36 @@ import org.springframework.cloud.contract.verifier.file.SingleContractMetadata;
 
 class MessagingGiven implements Given, MethodVisitor<Given>, BodyMethodVisitor {
 
-	private final BlockBuilder blockBuilder;
-
 	private final List<Given> givens = new LinkedList<>();
 
-	MessagingGiven(BlockBuilder blockBuilder,
+	protected final MethodBodyWriter methodBodyWriter;
+
+	MessagingGiven(MethodBodyWriter methodBodyWriter,
 			GeneratedClassMetaData generatedClassMetaData, BodyParser bodyParser) {
-		this.blockBuilder = blockBuilder;
+		this.methodBodyWriter = methodBodyWriter;
 		this.givens.addAll(Arrays.asList(
-				new MessagingBodyGiven(this.blockBuilder,
+				new MessagingBodyGiven(methodBodyWriter,
 						new BodyReader(generatedClassMetaData), bodyParser),
-				new MessagingHeadersGiven(this.blockBuilder)));
+				new MessagingHeadersGiven(methodBodyWriter)));
 	}
 
 	@Override
-	public MethodVisitor<Given> apply(SingleContractMetadata metadata,
-			SingleMethodBuilder methodBuilder) {
-		startBodyBlock(this.blockBuilder, "given:");
-		methodBuilder.variable("inputMessage", "ContractVerifierMessage");
-		this.blockBuilder.appendWithSpace("= contractVerifierMessaging.create(")
-				.addEmptyLine().indent();
-		this.givens.stream().filter(given -> given.accept(metadata)).forEach(given -> {
-			given.apply(metadata, methodBuilder);
-			this.blockBuilder.addEmptyLine();
+	public MethodVisitor<Given> apply(SingleContractMetadata metadata) {
+		methodBodyWriter.inGivenBlock(() -> {
+			// @formatter:off
+			methodBodyWriter
+					.declareVariable("inputMessage", "ContractVerifierMessage")
+					.assignValue()
+					.usingVariable("contractVerifierMessaging").and();
+			// @formatter:on
+			methodBodyWriter.blockBuilder().append(".create(").addEmptyLine();
+			methodBodyWriter.inBlock(2, () -> this.givens.stream()
+					.filter(given -> given.accept(metadata)).forEach(given -> {
+						given.apply(metadata);
+						methodBodyWriter.addEmptyLine();
+					}));
+			methodBodyWriter.addLine(")");
 		});
-		this.blockBuilder.unindent().unindent().startBlock().addIndented(")")
-				.addEndingIfNotPresent().addEmptyLine().endBlock();
 		return this;
 	}
 

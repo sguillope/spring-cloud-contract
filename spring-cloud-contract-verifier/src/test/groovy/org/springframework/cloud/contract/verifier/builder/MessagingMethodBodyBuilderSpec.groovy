@@ -529,7 +529,6 @@ public class FooTest {
 \t\t// when:
 \t\t\tcontractVerifierMessaging.send(inputMessage, "jms:delete");
 \t\t\tbookWasDeleted();
-
 \t}
 
 }

@@ -27,8 +27,7 @@ class JaxRsGiven implements Given, JaxRsAcceptor {
 	}
 
 	@Override
-	public MethodVisitor<Given> apply(SingleContractMetadata metadata,
-			SingleMethodBuilder methodBuilder) {
+	public MethodVisitor<Given> apply(SingleContractMetadata metadata) {
 		return this;
 	}
 

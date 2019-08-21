@@ -17,7 +17,7 @@
 package org.springframework.cloud.contract.verifier.builder;
 
 /**
- * Builds a single method body. Must be executed per contract.
+ * Builds a single method. Must be executed per contract.
  *
  * @author Olga Maciaszek-Sharma
  * @author Marcin Grzejszczak
@@ -48,8 +48,6 @@ public interface SingleMethodBuilder {
 
 	SingleMethodBuilder then(Then... then);
 
-	BlockBuilder getBlockBuilder();
-
 	GeneratedClassMetaData getGeneratedClassMetaData();
 
 	/**
@@ -58,6 +56,6 @@ public interface SingleMethodBuilder {
 	 */
 	BlockBuilder build();
 
-	SingleMethodBuilder variable(String name, String className);
+	BlockBuilder blockBuilder();
 
 }

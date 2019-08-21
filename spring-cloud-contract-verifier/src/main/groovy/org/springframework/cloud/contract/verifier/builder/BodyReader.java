@@ -39,12 +39,6 @@ class BodyReader {
 		return "fileToBytes(this, \"" + fileName + "\")";
 	}
 
-	String readStringFromFileString(SingleContractMetadata metadata,
-			FromFileProperty property, CommunicationType side) {
-		return (KotlinClassMetaData.hasKotlinSupport() ? "" : "new ") + "String("
-				+ readBytesFromFileString(metadata, property, side) + ")";
-	}
-
 	private String byteBodyToAFileForTestMethod(SingleContractMetadata metadata,
 			FromFileProperty property, CommunicationType side) {
 		GeneratedClassDataForMethod classDataForMethod = new GeneratedClassDataForMethod(

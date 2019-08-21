@@ -23,45 +23,54 @@ import org.springframework.cloud.contract.verifier.util.ContentType;
 
 class MessagingBodyGiven implements Given, MethodVisitor<Given> {
 
-	private final BlockBuilder blockBuilder;
-
 	private final BodyReader bodyReader;
 
 	private final BodyParser bodyParser;
 
-	MessagingBodyGiven(BlockBuilder blockBuilder, BodyReader bodyReader,
+	protected final MethodBodyWriter methodBodyWriter;
+
+	MessagingBodyGiven(MethodBodyWriter methodBodyWriter, BodyReader bodyReader,
 			BodyParser bodyParser) {
-		this.blockBuilder = blockBuilder;
+		this.methodBodyWriter = methodBodyWriter;
 		this.bodyReader = bodyReader;
 		this.bodyParser = bodyParser;
 	}
 
 	@Override
-	public MethodVisitor<Given> apply(SingleContractMetadata metadata,
-			SingleMethodBuilder methodBuilder) {
-		appendBodyGiven(metadata);
+	public MethodVisitor<Given> apply(SingleContractMetadata metadata) {
+		Object body = body(metadata);
+		if (body instanceof FromFileProperty) {
+			FromFileProperty fileProperty = (FromFileProperty) body;
+			String fileContent = this.bodyReader.readBytesFromFileString(metadata,
+					fileProperty, CommunicationType.REQUEST);
+			if (fileProperty.isByte()) {
+				methodBodyWriter.withIndentation().append(fileContent);
+			}
+			else {
+				// @formatter:off
+				methodBodyWriter
+						.withIndentation()
+						.createInstanceOf("String")
+							.withArgument(fileContent)
+						.instantiate();
+				// @formatter:on
+			}
+		}
+		else {
+			String text = this.bodyParser.convertToJsonString(body);
+			// @formatter:off
+			methodBodyWriter.withIndentation()
+					.append(this.bodyParser.quotedEscapedLongText(text));
+			// @formatter:on
+		}
 		return this;
 	}
 
-	private void appendBodyGiven(SingleContractMetadata metadata) {
+	private Object body(SingleContractMetadata metadata) {
 		ContentType contentType = metadata.getInputTestContentType();
 		Input inputMessage = metadata.getContract().getInput();
-		Object bodyValue = this.bodyParser.extractServerValueFromBody(contentType,
+		return this.bodyParser.extractServerValueFromBody(contentType,
 				inputMessage.getMessageBody().getServerValue());
-		if (bodyValue instanceof FromFileProperty) {
-			FromFileProperty fileProperty = (FromFileProperty) bodyValue;
-			String byteText = fileProperty.isByte()
-					? this.bodyReader.readBytesFromFileString(metadata, fileProperty,
-							CommunicationType.REQUEST)
-					: this.bodyParser.quotedLongText(
-							this.bodyReader.readStringFromFileString(metadata,
-									fileProperty, CommunicationType.REQUEST));
-			this.blockBuilder.addIndented(byteText);
-		}
-		else {
-			String text = this.bodyParser.convertToJsonString(bodyValue);
-			this.blockBuilder.addIndented(this.bodyParser.quotedEscapedLongText(text));
-		}
 	}
 
 	@Override

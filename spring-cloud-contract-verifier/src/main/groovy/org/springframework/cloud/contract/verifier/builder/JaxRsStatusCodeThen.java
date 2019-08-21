@@ -21,20 +21,20 @@ import org.springframework.cloud.contract.verifier.file.SingleContractMetadata;
 
 class JaxRsStatusCodeThen implements Then {
 
-	private final BlockBuilder blockBuilder;
-
 	private final ComparisonBuilder comparisonBuilder;
 
-	JaxRsStatusCodeThen(BlockBuilder blockBuilder, ComparisonBuilder comparisonBuilder) {
-		this.blockBuilder = blockBuilder;
+	protected final MethodBodyWriter methodBodyWriter;
+
+	JaxRsStatusCodeThen(MethodBodyWriter methodBodyWriter,
+			ComparisonBuilder comparisonBuilder) {
+		this.methodBodyWriter = methodBodyWriter;
 		this.comparisonBuilder = comparisonBuilder;
 	}
 
 	@Override
-	public MethodVisitor<Then> apply(SingleContractMetadata metadata,
-			SingleMethodBuilder methodBuilder) {
+	public MethodVisitor<Then> apply(SingleContractMetadata metadata) {
 		Response response = metadata.getContract().getResponse();
-		this.blockBuilder
+		methodBodyWriter.blockBuilder()
 				.addIndented(this.comparisonBuilder.assertThat("response.getStatus()",
 						response.getStatus().getServerValue()))
 				.addEndingIfNotPresent();

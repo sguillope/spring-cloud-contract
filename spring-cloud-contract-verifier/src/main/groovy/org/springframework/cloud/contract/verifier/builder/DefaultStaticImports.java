@@ -26,7 +26,7 @@ class DefaultStaticImports implements StaticImports {
 			"org.springframework.cloud.contract.verifier.util.ContractVerifierUtil.*" };
 
 	@Override
-	public List<String> fqns() {
+	public List<String> fullyQualifiedDomainNames() {
 		return Arrays.asList(IMPORTS);
 	}
 

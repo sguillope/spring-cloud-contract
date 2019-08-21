@@ -20,45 +20,45 @@ import java.util.Iterator;
 import java.util.Set;
 
 import org.springframework.cloud.contract.spec.internal.Header;
+import org.springframework.cloud.contract.spec.internal.Headers;
 import org.springframework.cloud.contract.spec.internal.MatchingStrategy;
-import org.springframework.cloud.contract.spec.internal.Request;
 import org.springframework.cloud.contract.verifier.file.SingleContractMetadata;
 import org.springframework.cloud.contract.verifier.util.MapConverter;
 
 class JaxRsRequestHeadersWhen implements When {
 
-	private final BlockBuilder blockBuilder;
-
 	private final BodyParser bodyParser;
 
-	JaxRsRequestHeadersWhen(BlockBuilder blockBuilder, BodyParser bodyParser) {
-		this.blockBuilder = blockBuilder;
+	protected final MethodBodyWriter methodBodyWriter;
+
+	JaxRsRequestHeadersWhen(MethodBodyWriter methodBodyWriter, BodyParser bodyParser) {
+		this.methodBodyWriter = methodBodyWriter;
 		this.bodyParser = bodyParser;
 	}
 
 	@Override
-	public MethodVisitor<When> apply(SingleContractMetadata metadata,
-			SingleMethodBuilder methodBuilder) {
-		appendHeaders(metadata.getContract().getRequest());
-		return this;
-	}
-
-	private void appendHeaders(Request request) {
-		Iterator<Header> iterator = request.getHeaders().getEntries().stream()
+	public MethodVisitor<When> apply(SingleContractMetadata metadata) {
+		Iterator<Header> iterator = getHeaders(metadata).getEntries().stream()
 				.filter(header -> !headerToIgnore(header)).iterator();
 		while (iterator.hasNext()) {
 			Header header = iterator.next();
-			String text = ".header(\"" + header.getName() + "\", "
-					+ this.bodyParser.quotedLongText(MapConverter
-							.getTestSideValuesForNonBody(header.getServerValue()))
-					+ ")";
+			// @formatter:off
+			methodBodyWriter.withIndentation()
+					.continueWithNewMethodCall("header")
+						.withParameter("\"" + header.getName() + "\"")
+						.withParameter(this.bodyParser.quotedLongText(MapConverter
+					.getTestSideValuesForNonBody(header.getServerValue())))
+					.closeCallAnd();
+			// @formatter:on
 			if (iterator.hasNext()) {
-				this.blockBuilder.addLine(text);
-			}
-			else {
-				this.blockBuilder.addIndented(text);
+				methodBodyWriter.addNewLine();
 			}
 		}
+		return this;
+	}
+
+	private Headers getHeaders(SingleContractMetadata metadata) {
+		return metadata.getContract().getRequest().getHeaders();
 	}
 
 	private boolean headerToIgnore(Header header) {
@@ -78,14 +78,13 @@ class JaxRsRequestHeadersWhen implements When {
 
 	@Override
 	public boolean accept(SingleContractMetadata metadata) {
-		return metadata.getContract().getRequest().getHeaders() != null && !metadata
-				.getContract().getRequest().getHeaders().getEntries().isEmpty()
+		return getHeaders(metadata) != null
+				&& !getHeaders(metadata).getEntries().isEmpty()
 				&& !hasHeaderOnlyContentTypeOrAccept(metadata);
 	}
 
 	private boolean hasHeaderOnlyContentTypeOrAccept(SingleContractMetadata metadata) {
-		Set<Header> entries = metadata.getContract().getRequest().getHeaders()
-				.getEntries();
+		Set<Header> entries = getHeaders(metadata).getEntries();
 		long filteredOut = entries.stream().filter(this::headerToIgnore).count();
 		return filteredOut == entries.size();
 	}

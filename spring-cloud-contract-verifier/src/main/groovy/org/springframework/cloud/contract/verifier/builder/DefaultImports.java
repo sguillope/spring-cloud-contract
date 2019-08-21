@@ -31,7 +31,7 @@ class DefaultImports implements Imports, DefaultBaseClassProvider {
 	}
 
 	@Override
-	public List<String> fqns() {
+	public List<String> fullyQualifiedDomainNames() {
 		String fqnBaseClass = fqnBaseClass();
 		return fqnBaseClass == null ? Collections.emptyList()
 				: Collections.singletonList(fqnBaseClass);

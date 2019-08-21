@@ -33,7 +33,7 @@ class JUnit5Imports implements Imports {
 	}
 
 	@Override
-	public List<String> fqns() {
+	public List<String> fullyQualifiedDomainNames() {
 		return Arrays.asList(IMPORTS);
 	}
 

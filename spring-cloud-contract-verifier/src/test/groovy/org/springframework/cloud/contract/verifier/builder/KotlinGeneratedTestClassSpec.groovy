@@ -24,12 +24,11 @@ import spock.lang.Issue
 import spock.lang.Shared
 import spock.lang.Specification
 
-import org.springframework.cloud.contract.spec.Contract
 import org.springframework.cloud.contract.verifier.TestGenerator
 import org.springframework.cloud.contract.verifier.config.ContractVerifierConfigProperties
 import org.springframework.cloud.contract.verifier.config.TestFramework
-import org.springframework.cloud.contract.verifier.config.TestMode
 import org.springframework.cloud.contract.verifier.file.ContractMetadata
+import org.springframework.cloud.contract.verifier.util.KotlinPluginsAvailabilityChecker
 import org.springframework.cloud.contract.verifier.util.SyntaxChecker
 import org.springframework.util.FileSystemUtils
 import org.springframework.util.StringUtils
@@ -164,9 +163,9 @@ class KotlinGeneratedTestClassSpec extends Specification {
 
 	Boolean setKotlinSupportMaven(boolean newValue) throws Exception {
 		Boolean previousValue = null
-		Arrays.stream(KotlinClassMetaData.class.getDeclaredFields())
+		Arrays.stream(KotlinPluginsAvailabilityChecker.class.getDeclaredFields())
 				.filter({ f -> Modifier.isStatic(f.getModifiers()) })
-				.filter({ f -> ("kotlinSupportMaven" == f.name) })
+				.filter({ f -> ("mavenSupport" == f.name) })
 				.findFirst()
 		.ifPresent({ field ->
 			field.setAccessible(true)

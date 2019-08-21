@@ -33,7 +33,7 @@ class DefaultJsonStaticImports implements StaticImports {
 	}
 
 	@Override
-	public List<String> fqns() {
+	public List<String> fullyQualifiedDomainNames() {
 		return Arrays.asList(IMPORTS);
 	}
 

@@ -21,20 +21,24 @@ import org.springframework.cloud.contract.verifier.file.SingleContractMetadata;
 
 class SpockMockMvcRequestGiven implements Given, MockMvcAcceptor {
 
-	private final BlockBuilder blockBuilder;
-
 	private final GeneratedClassMetaData generatedClassMetaData;
 
-	SpockMockMvcRequestGiven(BlockBuilder blockBuilder, GeneratedClassMetaData metaData) {
-		this.blockBuilder = blockBuilder;
+	protected final MethodBodyWriter methodBodyWriter;
+
+	SpockMockMvcRequestGiven(MethodBodyWriter methodBodyWriter,
+			GeneratedClassMetaData metaData) {
+		this.methodBodyWriter = methodBodyWriter;
 		this.generatedClassMetaData = metaData;
 	}
 
 	@Override
-	public MethodVisitor<Given> apply(SingleContractMetadata metadata,
-			SingleMethodBuilder methodBuilder) {
-		methodBuilder.variable("request", "def");
-		this.blockBuilder.appendWithSpace("= given()");
+	public MethodVisitor<Given> apply(SingleContractMetadata metadata) {
+		// @formatter:off
+		methodBodyWriter
+				.declareVariable("request", "def")
+				.assignValue()
+				.withMethodCall("given");
+		// @formatter:on
 		return this;
 	}
 

@@ -30,7 +30,7 @@ class JUnit5OrderImports implements Imports {
 	}
 
 	@Override
-	public List<String> fqns() {
+	public List<String> fullyQualifiedDomainNames() {
 		// "Not implemented yet in JUnit5 -
 		// https://github.com/junit-team/junit5/issues/48"
 		return Collections.emptyList();

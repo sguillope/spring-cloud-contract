@@ -24,24 +24,28 @@ import org.springframework.cloud.contract.verifier.file.SingleContractMetadata;
 
 class MessagingWhen implements When, BodyMethodVisitor {
 
-	private final BlockBuilder blockBuilder;
-
 	private final List<When> whens = new LinkedList<>();
 
-	MessagingWhen(BlockBuilder blockBuilder) {
-		this.blockBuilder = blockBuilder;
-		this.whens.addAll(Arrays.asList(new MessagingTriggeredByWhen(this.blockBuilder),
-				new MessagingBodyWhen(this.blockBuilder),
-				new MessagingAssertThatWhen(this.blockBuilder)));
+	protected final MethodBodyWriter methodBodyWriter;
+
+	MessagingWhen(MethodBodyWriter methodBodyWriter) {
+		this.methodBodyWriter = methodBodyWriter;
+		this.whens.addAll(Arrays.asList(new MessagingTriggeredByWhen(methodBodyWriter),
+				new MessagingBodyWhen(methodBodyWriter),
+				new MessagingAssertThatWhen(methodBodyWriter)));
 	}
 
 	@Override
-	public MethodVisitor<When> apply(SingleContractMetadata singleContractMetadata,
-			SingleMethodBuilder methodBuilder) {
-		startBodyBlock(this.blockBuilder, "when:");
-		bodyBlock(this.blockBuilder, this.whens, singleContractMetadata, methodBuilder);
-		this.blockBuilder.addEmptyLine();
+	public MethodVisitor<When> apply(SingleContractMetadata singleContractMetadata) {
+		methodBodyWriter.inWhenBlock(
+				() -> bodyBlock(methodBodyWriter, this.whens, singleContractMetadata));
 		return this;
+	}
+
+	@Override
+	public void applyVisitorsWithEnding(MethodBodyWriter methodBodyWriter,
+			SingleContractMetadata singleContractMetadata, List<MethodVisitor> visitors) {
+		visitors.forEach(visitor -> visitor.apply(singleContractMetadata));
 	}
 
 	@Override

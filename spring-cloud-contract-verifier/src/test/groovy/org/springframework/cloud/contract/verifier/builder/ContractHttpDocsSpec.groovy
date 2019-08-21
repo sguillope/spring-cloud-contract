@@ -392,7 +392,7 @@ class FooSpec extends Specification {
 \t\t\t\t\t.body('''{"email":"abc@abc.com","callback_url":"https://partners.com"}''')
 
 \t\twhen:
-\t\t\tResponseOptions response = given().spec(request)
+\t\t\tdef response = given().spec(request)
 \t\t\t\t\t.post("/users/password")
 
 \t\tthen:

@@ -23,9 +23,9 @@ import java.util.List;
 import org.springframework.cloud.contract.verifier.config.TestMode;
 import org.springframework.cloud.contract.verifier.file.SingleContractMetadata;
 
-class RestAssuredGiven implements Given, BodyMethodVisitor {
+import static org.springframework.cloud.contract.verifier.util.KotlinPluginsAvailabilityChecker.hasKotlinSupport;
 
-	private final BlockBuilder blockBuilder;
+class RestAssuredGiven implements Given, BodyMethodVisitor {
 
 	private final GeneratedClassMetaData generatedClassMetaData;
 
@@ -33,42 +33,45 @@ class RestAssuredGiven implements Given, BodyMethodVisitor {
 
 	private final List<Given> bodyGivens = new LinkedList<>();
 
-	RestAssuredGiven(BlockBuilder blockBuilder,
+	protected final MethodBodyWriter methodBodyWriter;
+
+	RestAssuredGiven(MethodBodyWriter methodBodyWriter,
 			GeneratedClassMetaData generatedClassMetaData, BodyParser bodyParser) {
-		this.blockBuilder = blockBuilder;
+		this.methodBodyWriter = methodBodyWriter;
 		this.generatedClassMetaData = generatedClassMetaData;
 		this.requestGivens.addAll(Arrays.asList(
-				new MockMvcRequestGiven(blockBuilder, generatedClassMetaData),
-				new SpockMockMvcRequestGiven(blockBuilder, generatedClassMetaData),
-				new ExplicitRequestGiven(blockBuilder, generatedClassMetaData),
-				new WebTestClientRequestGiven(blockBuilder, generatedClassMetaData)));
-		this.bodyGivens.addAll(Arrays.asList(new MockMvcHeadersGiven(blockBuilder),
-				new MockMvcCookiesGiven(blockBuilder),
-				new MockMvcBodyGiven(blockBuilder, generatedClassMetaData, bodyParser),
-				new MockMvcMultipartGiven(blockBuilder, generatedClassMetaData,
+				new MockMvcRequestGiven(methodBodyWriter, generatedClassMetaData),
+				new SpockMockMvcRequestGiven(methodBodyWriter, generatedClassMetaData),
+				new ExplicitRequestGiven(methodBodyWriter, generatedClassMetaData),
+				new WebTestClientRequestGiven(methodBodyWriter, generatedClassMetaData)));
+		this.bodyGivens.addAll(Arrays.asList(new MockMvcHeadersGiven(methodBodyWriter),
+				new MockMvcCookiesGiven(methodBodyWriter),
+				new MockMvcBodyGiven(methodBodyWriter, generatedClassMetaData,
 						bodyParser),
-				new SpockMockMvcMultipartGiven(blockBuilder, generatedClassMetaData,
+				hasKotlinSupport()
+						? new KotlinMockMvcMultipartGiven(methodBodyWriter,
+								generatedClassMetaData, bodyParser)
+						: new MockMvcMultipartGiven(methodBodyWriter,
+								generatedClassMetaData, bodyParser),
+				new SpockMockMvcMultipartGiven(methodBodyWriter, generatedClassMetaData,
 						bodyParser)));
 	}
 
 	@Override
-	public MethodVisitor<Given> apply(SingleContractMetadata singleContractMetadata,
-			SingleMethodBuilder methodBuilder) {
-		startBodyBlock(this.blockBuilder, "given:");
-		addRequestGivenLine(singleContractMetadata, methodBuilder);
-		indentedBodyBlock(this.blockBuilder, this.bodyGivens, singleContractMetadata,
-				methodBuilder);
-		this.blockBuilder.addEmptyLine();
+	public MethodVisitor<Given> apply(SingleContractMetadata singleContractMetadata) {
+		methodBodyWriter.inGivenBlock(() -> {
+			addRequestGivenLine(singleContractMetadata);
+			indentedBodyBlock(methodBodyWriter, this.bodyGivens, singleContractMetadata);
+		});
 		return this;
 	}
 
-	private void addRequestGivenLine(SingleContractMetadata singleContractMetadata,
-			SingleMethodBuilder methodBuilder) {
+	private void addRequestGivenLine(SingleContractMetadata singleContractMetadata) {
 		this.requestGivens.stream().filter(given -> given.accept(singleContractMetadata))
 				.findFirst()
 				.orElseThrow(() -> new IllegalStateException(
 						"No matching request building Given implementation for Rest Assured"))
-				.apply(singleContractMetadata, methodBuilder);
+				.apply(singleContractMetadata);
 	}
 
 	@Override

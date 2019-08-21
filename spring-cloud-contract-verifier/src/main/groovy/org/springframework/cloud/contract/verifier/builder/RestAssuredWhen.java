@@ -23,9 +23,9 @@ import java.util.List;
 import org.springframework.cloud.contract.verifier.config.TestMode;
 import org.springframework.cloud.contract.verifier.file.SingleContractMetadata;
 
-class RestAssuredWhen implements When, BodyMethodVisitor {
+import static org.springframework.cloud.contract.verifier.util.KotlinPluginsAvailabilityChecker.hasKotlinSupport;
 
-	private final BlockBuilder blockBuilder;
+class RestAssuredWhen implements When, BodyMethodVisitor {
 
 	private final GeneratedClassMetaData generatedClassMetaData;
 
@@ -33,41 +33,42 @@ class RestAssuredWhen implements When, BodyMethodVisitor {
 
 	private final List<When> whens = new LinkedList<>();
 
-	RestAssuredWhen(BlockBuilder blockBuilder,
+	protected final MethodBodyWriter methodBodyWriter;
+
+	RestAssuredWhen(MethodBodyWriter methodBodyWriter,
 			GeneratedClassMetaData generatedClassMetaData, BodyParser bodyParser) {
-		this.blockBuilder = blockBuilder;
+		this.methodBodyWriter = methodBodyWriter;
 		this.generatedClassMetaData = generatedClassMetaData;
 		this.responseWhens.addAll(Arrays.asList(
-				new MockMvcResponseWhen(blockBuilder, this.generatedClassMetaData),
-				new SpockMockMvcResponseWhen(blockBuilder, this.generatedClassMetaData),
-				new ExplicitResponseWhen(blockBuilder, this.generatedClassMetaData),
-				new WebTestClientResponseWhen(blockBuilder,
-						this.generatedClassMetaData)));
-		this.whens.addAll(
-				Arrays.asList(new MockMvcQueryParamsWhen(this.blockBuilder, bodyParser),
-						new MockMvcAsyncWhen(this.blockBuilder,
-								this.generatedClassMetaData),
-						new MockMvcUrlWhen(this.blockBuilder, bodyParser)));
+				new SpockMockMvcResponseWhen(methodBodyWriter, generatedClassMetaData),
+				new MockMvcResponseWhen(methodBodyWriter, generatedClassMetaData),
+				new ExplicitResponseWhen(methodBodyWriter, generatedClassMetaData),
+				new WebTestClientResponseWhen(methodBodyWriter, generatedClassMetaData)));
+		this.whens.addAll(Arrays.asList(
+				new MockMvcQueryParamsWhen(methodBodyWriter, bodyParser),
+				hasKotlinSupport()
+						? new KotlinMockMvcAsyncWhen(methodBodyWriter,
+								generatedClassMetaData)
+						: new MockMvcAsyncWhen(methodBodyWriter, generatedClassMetaData),
+				new MockMvcUrlWhen(methodBodyWriter, bodyParser)));
 	}
 
 	@Override
-	public MethodVisitor<When> apply(SingleContractMetadata singleContractMetadata,
-			SingleMethodBuilder methodBuilder) {
-		startBodyBlock(this.blockBuilder, "when:");
-		addResponseWhenLine(singleContractMetadata, methodBuilder);
-		indentedBodyBlock(this.blockBuilder, this.whens, singleContractMetadata,
-				methodBuilder);
-		this.blockBuilder.addEmptyLine();
+	public MethodVisitor<When> apply(SingleContractMetadata singleContractMetadata) {
+		methodBodyWriter.inWhenBlock(() -> {
+			addResponseWhenLine(singleContractMetadata);
+			indentedBodyBlock(methodBodyWriter, this.whens, singleContractMetadata);
+		});
+		methodBodyWriter.addEmptyLine();
 		return this;
 	}
 
-	private void addResponseWhenLine(SingleContractMetadata singleContractMetadata,
-			SingleMethodBuilder methodBuilder) {
+	private void addResponseWhenLine(SingleContractMetadata singleContractMetadata) {
 		this.responseWhens.stream().filter(when -> when.accept(singleContractMetadata))
 				.findFirst()
 				.orElseThrow(() -> new IllegalStateException(
 						"No matching request building When implementation for Rest Assured"))
-				.apply(singleContractMetadata, methodBuilder);
+				.apply(singleContractMetadata);
 	}
 
 	@Override

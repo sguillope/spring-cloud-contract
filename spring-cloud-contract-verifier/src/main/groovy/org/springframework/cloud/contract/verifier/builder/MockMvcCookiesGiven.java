@@ -19,45 +19,44 @@ package org.springframework.cloud.contract.verifier.builder;
 import java.util.Iterator;
 
 import org.springframework.cloud.contract.spec.internal.Cookie;
+import org.springframework.cloud.contract.spec.internal.Cookies;
 import org.springframework.cloud.contract.spec.internal.MatchingStrategy;
 import org.springframework.cloud.contract.spec.internal.Request;
 import org.springframework.cloud.contract.verifier.file.SingleContractMetadata;
 
 class MockMvcCookiesGiven implements Given {
 
-	private final BlockBuilder blockBuilder;
+	protected final MethodBodyWriter methodBodyWriter;
 
-	MockMvcCookiesGiven(BlockBuilder blockBuilder) {
-		this.blockBuilder = blockBuilder;
+	MockMvcCookiesGiven(MethodBodyWriter methodBodyWriter) {
+		this.methodBodyWriter = methodBodyWriter;
 	}
 
 	@Override
-	public MethodVisitor<Given> apply(SingleContractMetadata metadata,
-			SingleMethodBuilder methodBuilder) {
-		processInput(metadata.getContract().getRequest());
-		return this;
-	}
-
-	private void processInput(Request request) {
-		Iterator<Cookie> iterator = request.getCookies().getEntries().iterator();
+	public MethodVisitor<Given> apply(SingleContractMetadata metadata) {
+		Cookies cookies = getCookies(metadata.getContract().getRequest());
+		Iterator<Cookie> iterator = cookies.getEntries().iterator();
 		while (iterator.hasNext()) {
 			Cookie cookie = iterator.next();
 			if (ofAbsentType(cookie)) {
-				return;
+				continue;
 			}
+			// @formatter:off
+			methodBodyWriter.withIndentation()
+					.continueWithNewMethodCall("cookie")
+						.withParameter(ContentHelper.getTestSideForNonBodyValue(cookie.getKey()))
+						.withParameter(ContentHelper.getTestSideForNonBodyValue(cookie.getServerValue()))
+					.closeCallAnd();
+			// @formatter:on
 			if (iterator.hasNext()) {
-				this.blockBuilder.addLine(string(cookie));
-			}
-			else {
-				this.blockBuilder.addIndented(string(cookie));
+				methodBodyWriter.addNewLine();
 			}
 		}
+		return this;
 	}
 
-	private String string(Cookie cookie) {
-		return ".cookie(" + ContentHelper.getTestSideForNonBodyValue(cookie.getKey())
-				+ ", " + ContentHelper.getTestSideForNonBodyValue(cookie.getServerValue())
-				+ ")";
+	private Cookies getCookies(Request request) {
+		return request.getCookies();
 	}
 
 	private boolean ofAbsentType(Cookie cookie) {
@@ -69,7 +68,7 @@ class MockMvcCookiesGiven implements Given {
 	@Override
 	public boolean accept(SingleContractMetadata metadata) {
 		Request request = metadata.getContract().getRequest();
-		return request != null && request.getCookies() != null;
+		return request != null && getCookies(request) != null;
 	}
 
 }

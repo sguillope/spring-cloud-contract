@@ -25,40 +25,44 @@ import org.springframework.cloud.contract.verifier.file.SingleContractMetadata;
 import org.springframework.cloud.contract.verifier.template.HandlebarsTemplateProcessor;
 import org.springframework.cloud.contract.verifier.template.TemplateProcessor;
 
-class GenericHttpBodyThen implements Then, BodyMethodVisitor {
+import static java.util.stream.Collectors.toList;
 
-	private final BlockBuilder blockBuilder;
+class GenericHttpBodyThen implements Then, BodyMethodVisitor {
 
 	private final TemplateProcessor templateProcessor;
 
 	private final List<Then> thens = new LinkedList<>();
 
-	GenericHttpBodyThen(BlockBuilder blockBuilder, GeneratedClassMetaData metaData,
-			BodyParser bodyParser, ComparisonBuilder comparisonBuilder) {
-		this.blockBuilder = blockBuilder;
+	protected final MethodBodyWriter methodBodyWriter;
+
+	GenericHttpBodyThen(MethodBodyWriter methodBodyWriter,
+			GeneratedClassMetaData metaData, BodyParser bodyParser,
+			ComparisonBuilder comparisonBuilder) {
+		this.methodBodyWriter = methodBodyWriter;
 		this.templateProcessor = new HandlebarsTemplateProcessor();
 		this.thens.addAll(Arrays.asList(
-				new GenericBinaryBodyThen(blockBuilder, metaData, bodyParser,
+				new GenericBinaryBodyThen(methodBodyWriter, metaData, bodyParser,
 						comparisonBuilder),
-				new GenericTextBodyThen(blockBuilder, metaData, bodyParser,
+				new GenericTextBodyThen(methodBodyWriter, metaData, bodyParser,
 						comparisonBuilder),
-				new GenericJsonBodyThen(blockBuilder, metaData, bodyParser,
+				new GenericJsonBodyThen(methodBodyWriter, metaData, bodyParser,
 						comparisonBuilder),
-				new GenericXmlBodyThen(blockBuilder, bodyParser)));
+				new GenericXmlBodyThen(methodBodyWriter, bodyParser)));
 	}
 
 	@Override
-	public MethodVisitor<Then> apply(SingleContractMetadata metadata,
-			SingleMethodBuilder methodBuilder) {
-		endBodyBlock(this.blockBuilder);
-		this.blockBuilder.addEmptyLine();
-		startBodyBlock(this.blockBuilder, "and:");
-		Request request = metadata.getContract().getRequest();
-		this.thens.stream().filter(then -> then.accept(metadata))
-				.forEach(then -> then.apply(metadata, methodBuilder));
-		String newBody = this.templateProcessor.transform(request,
-				this.blockBuilder.toString());
-		this.blockBuilder.updateContents(newBody);
+	public MethodVisitor<Then> apply(SingleContractMetadata metadata) {
+		List<Then> thens = this.thens.stream().filter(then -> then.accept(metadata))
+				.collect(toList());
+		if (!thens.isEmpty()) {
+			methodBodyWriter.addEmptyLine().inAndBlock(() -> {
+				Request request = metadata.getContract().getRequest();
+				thens.forEach(then -> then.apply(metadata));
+				String newBody = this.templateProcessor.transform(request,
+						methodBodyWriter.blockBuilder().toString());
+				methodBodyWriter.blockBuilder().updateContents(newBody);
+			});
+		}
 		return this;
 	}
 

@@ -58,13 +58,13 @@ interface DefaultClassBuilder extends ClassBuilder {
 				classAnnotation -> blockBuilder().addLine(classAnnotation.annotation()));
 	}
 
-	default ClassBuilder writeImport(String fqn) {
-		blockBuilder().addLineWithEnding("import " + fqn);
+	default ClassBuilder writeImport(String fullyQualifiedName) {
+		blockBuilder().addLineWithEnding("import " + fullyQualifiedName);
 		return this;
 	}
 
-	default ClassBuilder writeStaticImport(String fqn) {
-		blockBuilder().addLineWithEnding("import static " + fqn);
+	default ClassBuilder writeStaticImport(String fullyQualifiedName) {
+		blockBuilder().addLineWithEnding("import static " + fullyQualifiedName);
 		return this;
 	}
 

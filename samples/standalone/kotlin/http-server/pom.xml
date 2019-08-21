@@ -171,6 +171,13 @@
 				<configuration>
 					<packageWithBaseClasses>com.example.fraud</packageWithBaseClasses>
 				</configuration>
+				<dependencies>
+					<dependency>
+						<groupId>org.jetbrains.kotlin</groupId>
+						<artifactId>kotlin-maven-plugin</artifactId>
+						<version>${kotlin.version}</version>
+					</dependency>
+				</dependencies>
 			</plugin>
 			<!-- end::contract_maven_plugin[] -->
 			<plugin>

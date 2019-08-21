@@ -33,8 +33,7 @@ class TestNGMethodAnnotation implements MethodAnnotations {
 
 	@Override
 	public MethodVisitor<MethodAnnotations> apply(
-			SingleContractMetadata singleContractMetadata,
-			SingleMethodBuilder methodBuilder) {
+			SingleContractMetadata singleContractMetadata) {
 		final String annotation = singleContractMetadata.isIgnored()
 				? "@Test(enabled = false)" : "@Test";
 		this.blockBuilder.addIndented(annotation);

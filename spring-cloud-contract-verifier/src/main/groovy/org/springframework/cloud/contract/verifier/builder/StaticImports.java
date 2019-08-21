@@ -20,7 +20,7 @@ interface StaticImports extends Imports {
 
 	@Override
 	default ClassBuilder apply(ClassBuilder classBuilder) {
-		fqns().forEach(classBuilder::writeStaticImport);
+		fullyQualifiedDomainNames().forEach(classBuilder::writeStaticImport);
 		return classBuilder;
 	}
 

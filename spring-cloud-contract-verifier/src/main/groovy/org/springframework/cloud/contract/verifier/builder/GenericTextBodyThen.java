@@ -25,46 +25,40 @@ import static org.springframework.cloud.contract.verifier.util.ContentType.XML;
 
 class GenericTextBodyThen implements Then {
 
-	private final BlockBuilder blockBuilder;
-
 	private final BodyAssertionLineCreator bodyAssertionLineCreator;
 
 	private final BodyParser bodyParser;
 
-	GenericTextBodyThen(BlockBuilder blockBuilder, GeneratedClassMetaData metaData,
-			BodyParser bodyParser, ComparisonBuilder comparisonBuilder) {
-		this.blockBuilder = blockBuilder;
+	protected final MethodBodyWriter methodBodyWriter;
+
+	GenericTextBodyThen(MethodBodyWriter methodBodyWriter,
+			GeneratedClassMetaData metaData, BodyParser bodyParser,
+			ComparisonBuilder comparisonBuilder) {
+		this.methodBodyWriter = methodBodyWriter;
 		this.bodyParser = bodyParser;
-		this.bodyAssertionLineCreator = new BodyAssertionLineCreator(blockBuilder,
-				metaData, this.bodyParser.byteArrayString(), comparisonBuilder);
+		this.bodyAssertionLineCreator = new BodyAssertionLineCreator(
+				methodBodyWriter.blockBuilder(), metaData,
+				this.bodyParser.byteArrayString(), comparisonBuilder);
 	}
 
 	@Override
-	public MethodVisitor<Then> apply(SingleContractMetadata metadata,
-			SingleMethodBuilder methodBuilder) {
+	public MethodVisitor<Then> apply(SingleContractMetadata metadata) {
 		Object convertedResponseBody = this.bodyParser.convertResponseBody(metadata);
 		if (convertedResponseBody instanceof String) {
 			convertedResponseBody = this.bodyParser
 					.escapeForSimpleTextAssertion(convertedResponseBody.toString());
 		}
-		simpleTextResponseBodyCheck(metadata, methodBuilder, convertedResponseBody);
+		simpleTextResponseBodyCheck(metadata, convertedResponseBody);
 		return this;
 	}
 
 	private void simpleTextResponseBodyCheck(SingleContractMetadata metadata,
-			SingleMethodBuilder methodBuilder, Object convertedResponseBody) {
-		methodBuilder.variable("responseBody", "String");
-		this.blockBuilder
-				.appendWithSpace(
-						getSimpleResponseBodyString(this.bodyParser.responseAsString()))
-				.addEndingIfNotPresent().addEmptyLine();
+			Object convertedResponseBody) {
+		methodBodyWriter.declareVariable("responseBody", "String")
+				.assignValue(this.bodyParser.responseAsString());
 		this.bodyAssertionLineCreator.appendBodyAssertionLine(metadata, "",
 				convertedResponseBody);
-		this.blockBuilder.addEndingIfNotPresent();
-	}
-
-	private String getSimpleResponseBodyString(String responseString) {
-		return "= " + responseString + this.blockBuilder.getLineEnding();
+		methodBodyWriter.addEndingIfNotPresent();
 	}
 
 	@Override

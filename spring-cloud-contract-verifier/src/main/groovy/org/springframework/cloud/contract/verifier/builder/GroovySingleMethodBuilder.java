@@ -43,12 +43,15 @@ class GroovySingleMethodBuilder implements SingleMethodBuilder {
 
 	private List<Then> thens = new LinkedList<>();
 
+	private final MethodBodyWriter methodBodyWriter;
+
 	final GeneratedClassMetaData generatedClassMetaData;
 
 	final BlockBuilder blockBuilder;
 
 	private GroovySingleMethodBuilder(BlockBuilder blockBuilder,
 			GeneratedClassMetaData generatedClassMetaData) {
+		this.methodBodyWriter = new GroovyMethodBodyWriter(blockBuilder);
 		this.blockBuilder = blockBuilder;
 		this.generatedClassMetaData = generatedClassMetaData;
 	}
@@ -84,12 +87,12 @@ class GroovySingleMethodBuilder implements SingleMethodBuilder {
 	}
 
 	public GroovySingleMethodBuilder restAssured() {
-		return given(new RestAssuredGiven(this.blockBuilder, this.generatedClassMetaData,
-				SpockRestAssuredBodyParser.INSTANCE))
-						.when(new RestAssuredWhen(this.blockBuilder,
+		return given(new RestAssuredGiven(this.methodBodyWriter,
+				this.generatedClassMetaData, SpockRestAssuredBodyParser.INSTANCE))
+						.when(new RestAssuredWhen(this.methodBodyWriter,
 								this.generatedClassMetaData,
 								RestAssuredBodyParser.INSTANCE))
-						.then(new RestAssuredThen(this.blockBuilder,
+						.then(new RestAssuredThen(this.methodBodyWriter,
 								this.generatedClassMetaData,
 								SpockRestAssuredBodyParser.INSTANCE,
 								GroovyComparisonBuilder.SPOCK_HTTP_INSTANCE));
@@ -97,21 +100,20 @@ class GroovySingleMethodBuilder implements SingleMethodBuilder {
 
 	public GroovySingleMethodBuilder jaxRs() {
 		return given(new JaxRsGiven(this.generatedClassMetaData))
-				.when(new JaxRsWhen(this.blockBuilder, this.generatedClassMetaData,
+				.when(new JaxRsWhen(this.methodBodyWriter, this.generatedClassMetaData,
 						SpockJaxRsBodyParser.INSTANCE))
-				.then(new JaxRsThen(this.blockBuilder, this.generatedClassMetaData,
+				.then(new JaxRsThen(this.methodBodyWriter, this.generatedClassMetaData,
 						SpockJaxRsBodyParser.INSTANCE,
 						GroovyComparisonBuilder.JAXRS_HTTP_INSTANCE));
 	}
 
 	public GroovySingleMethodBuilder messaging() {
 		// @formatter:off
-		return given(new MessagingGiven(this.blockBuilder, this.generatedClassMetaData, SpockMessagingBodyParser.INSTANCE))
-				.when(new MessagingWhen(this.blockBuilder))
-				.then(new MessagingWithBodyThen(this.blockBuilder,
+		return given(new MessagingGiven(this.methodBodyWriter, this.generatedClassMetaData, SpockMessagingBodyParser.INSTANCE))
+				.when(new MessagingWhen(this.methodBodyWriter))
+				.then(new MessagingWithBodyThen(this.methodBodyWriter,
 						this.generatedClassMetaData, GroovyComparisonBuilder.SPOCK_MESSAGING_INSTANCE))
-				.then(new SpockMessagingEmptyThen(this.blockBuilder,
-						this.generatedClassMetaData));
+				.then(new SpockMessagingEmptyThen(this.methodBodyWriter));
 		// @formatter:on
 	}
 
@@ -128,11 +130,6 @@ class GroovySingleMethodBuilder implements SingleMethodBuilder {
 	public GroovySingleMethodBuilder then(Then... then) {
 		this.thens.addAll(Arrays.asList(then));
 		return this;
-	}
-
-	@Override
-	public BlockBuilder getBlockBuilder() {
-		return this.blockBuilder;
 	}
 
 	@Override
@@ -167,7 +164,6 @@ class GroovySingleMethodBuilder implements SingleMethodBuilder {
 				}
 				// (indent) when
 				visit(this.whens, metaData);
-				this.blockBuilder.addEmptyLine();
 				// (indent) then
 				visit(this.thens, metaData);
 			});
@@ -179,9 +175,8 @@ class GroovySingleMethodBuilder implements SingleMethodBuilder {
 	}
 
 	@Override
-	public SingleMethodBuilder variable(String name, String className) {
-		this.blockBuilder.addIndented(className).appendWithSpace(name);
-		return this;
+	public BlockBuilder blockBuilder() {
+		return this.blockBuilder;
 	}
 
 	private MethodMetadata pickMetadatum() {
@@ -202,7 +197,7 @@ class GroovySingleMethodBuilder implements SingleMethodBuilder {
 		Iterator<? extends MethodVisitor> iterator = visitors.iterator();
 		while (iterator.hasNext()) {
 			MethodVisitor visitor = iterator.next();
-			visitor.apply(metaData, this);
+			visitor.apply(metaData);
 			if (addLineEnding) {
 				this.blockBuilder.addEndingIfNotPresent();
 			}

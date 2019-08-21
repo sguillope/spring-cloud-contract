@@ -24,30 +24,25 @@ import org.springframework.util.StringUtils;
 
 class JaxRsRequestWhen implements When, JaxRsAcceptor, QueryParamsResolver {
 
-	private final BlockBuilder blockBuilder;
-
 	private final GeneratedClassMetaData generatedClassMetaData;
 
-	JaxRsRequestWhen(BlockBuilder blockBuilder, GeneratedClassMetaData metaData) {
-		this.blockBuilder = blockBuilder;
+	protected final MethodBodyWriter methodBodyWriter;
+
+	JaxRsRequestWhen(MethodBodyWriter methodBodyWriter, GeneratedClassMetaData metaData) {
+		this.methodBodyWriter = methodBodyWriter;
 		this.generatedClassMetaData = metaData;
 	}
 
 	@Override
-	public MethodVisitor<When> apply(SingleContractMetadata metadata,
-			SingleMethodBuilder methodBuilder) {
-		appendRequestWithRequiredResponseContentType(metadata.getContract().getRequest());
-		return this;
-	}
-
-	void appendRequestWithRequiredResponseContentType(Request request) {
-		String acceptHeader = getHeader(request, "Accept");
+	public MethodVisitor<When> apply(SingleContractMetadata metadata) {
+		MethodCallBuilder methodCallBuilder = methodBodyWriter.withIndentation()
+				.continueWithNewMethodCall("request");
+		String acceptHeader = getHeader(metadata.getContract().getRequest(), "Accept");
 		if (StringUtils.hasText(acceptHeader)) {
-			this.blockBuilder.addIndented(".request(\"" + acceptHeader + "\")");
+			methodCallBuilder.withParameter("\"" + acceptHeader + "\"");
 		}
-		else {
-			this.blockBuilder.addIndented(".request()");
-		}
+		methodCallBuilder.closeCall();
+		return this;
 	}
 
 	private String getHeader(Request request, String name) {

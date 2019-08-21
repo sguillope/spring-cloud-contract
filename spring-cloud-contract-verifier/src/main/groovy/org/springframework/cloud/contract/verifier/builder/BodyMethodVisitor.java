@@ -28,36 +28,26 @@ import org.springframework.cloud.contract.verifier.file.SingleContractMetadata;
 interface BodyMethodVisitor {
 
 	/**
-	 * Adds a starting body method block. E.g. //given: together with all indents
-	 * @param blockBuilder
-	 * @param label
-	 * @return
-	 */
-	default BlockBuilder startBodyBlock(BlockBuilder blockBuilder, String label) {
-		return blockBuilder.addIndentation().appendWithLabelPrefix(label).addEmptyLine()
-				.startBlock();
-	}
-
-	/**
 	 * Picks matching elements, visits them and applies indents.
-	 * @param blockBuilder
+	 * @param methodBodyWriter
 	 * @param methodVisitors
 	 * @param singleContractMetadata
 	 */
-	default void indentedBodyBlock(BlockBuilder blockBuilder,
+	default void indentedBodyBlock(MethodBodyWriter methodBodyWriter,
 			List<? extends MethodVisitor> methodVisitors,
-			SingleContractMetadata singleContractMetadata,
-			SingleMethodBuilder methodBuilder) {
+			SingleContractMetadata singleContractMetadata) {
 		List<MethodVisitor> visitors = filterVisitors(methodVisitors,
 				singleContractMetadata);
-		if (visitors.isEmpty()) {
-			blockBuilder.addEndingIfNotPresent().addEmptyLine();
-			blockBuilder.endBlock();
-			return;
-		}
-		blockBuilder.addEmptyLine().indent();
-		applyVisitors(blockBuilder, singleContractMetadata, methodBuilder, visitors);
-		endIndentedBodyBlock(blockBuilder);
+		methodBodyWriter.inBlock(2, () -> {
+			if (visitors.isEmpty()) {
+				methodBodyWriter.addEndingIfNotPresent();
+			}
+			else {
+				methodBodyWriter.addEmptyLine();
+				applyVisitors(methodBodyWriter, singleContractMetadata, visitors);
+				methodBodyWriter.addEndingIfNotPresent();
+			}
+		});
 	}
 
 	/**
@@ -77,71 +67,60 @@ interface BodyMethodVisitor {
 	/**
 	 * Picks matching elements, visits them. Doesn't apply indents. Useful for the //
 	 * then: block where there is no method chaining.
-	 * @param blockBuilder
+	 * @param methodBodyWriter
 	 * @param methodVisitors
 	 * @param singleContractMetadata
 	 */
-	default void bodyBlock(BlockBuilder blockBuilder,
+	default void bodyBlock(MethodBodyWriter methodBodyWriter,
 			List<? extends MethodVisitor> methodVisitors,
-			SingleContractMetadata singleContractMetadata,
-			SingleMethodBuilder methodBuilder) {
+			SingleContractMetadata singleContractMetadata) {
 		List<MethodVisitor> visitors = filterVisitors(methodVisitors,
 				singleContractMetadata);
 		if (visitors.isEmpty()) {
-			blockBuilder.addEndingIfNotPresent().addEmptyLine();
-			return;
+			methodBodyWriter.addEndingIfNotPresent();
 		}
-		applyVisitorsWithEnding(blockBuilder, singleContractMetadata, methodBuilder,
-				visitors);
-		endBodyBlock(blockBuilder);
+		else {
+			applyVisitorsWithEnding(methodBodyWriter, singleContractMetadata, visitors);
+			methodBodyWriter.addEndingIfNotPresent();
+		}
 	}
 
 	/**
 	 * Executes logic for all the matching visitors.
-	 * @param blockBuilder
+	 * @param methodBodyWriter
 	 * @param singleContractMetadata
 	 * @param visitors
 	 */
-	default void applyVisitors(BlockBuilder blockBuilder,
-			SingleContractMetadata singleContractMetadata,
-			SingleMethodBuilder methodBuilder, List<MethodVisitor> visitors) {
+	default void applyVisitors(MethodBodyWriter methodBodyWriter,
+			SingleContractMetadata singleContractMetadata, List<MethodVisitor> visitors) {
 		Iterator<MethodVisitor> iterator = visitors.iterator();
 		while (iterator.hasNext()) {
 			MethodVisitor visitor = iterator.next();
-			visitor.apply(singleContractMetadata, methodBuilder);
+			visitor.apply(singleContractMetadata);
 			if (iterator.hasNext()) {
-				blockBuilder.addEmptyLine();
+				methodBodyWriter.addEmptyLine();
 			}
 		}
-		blockBuilder.addEndingIfNotPresent();
+		methodBodyWriter.addEndingIfNotPresent();
 	}
 
 	/**
 	 * Executes logic for all the matching visitors.
-	 * @param blockBuilder
+	 * @param methodBodyWriter
 	 * @param singleContractMetadata
 	 * @param visitors
 	 */
-	default void applyVisitorsWithEnding(BlockBuilder blockBuilder,
-			SingleContractMetadata singleContractMetadata,
-			SingleMethodBuilder methodBuilder, List<MethodVisitor> visitors) {
+	default void applyVisitorsWithEnding(MethodBodyWriter methodBodyWriter,
+			SingleContractMetadata singleContractMetadata, List<MethodVisitor> visitors) {
 		Iterator<MethodVisitor> iterator = visitors.iterator();
 		while (iterator.hasNext()) {
 			MethodVisitor visitor = iterator.next();
-			visitor.apply(singleContractMetadata, methodBuilder);
-			blockBuilder.addEndingIfNotPresent();
+			visitor.apply(singleContractMetadata);
+			methodBodyWriter.addEndingIfNotPresent();
 			if (iterator.hasNext()) {
-				blockBuilder.addEmptyLine();
+				methodBodyWriter.addEmptyLine();
 			}
 		}
-	}
-
-	default void endIndentedBodyBlock(BlockBuilder blockBuilder) {
-		blockBuilder.addEndingIfNotPresent().unindent().endBlock();
-	}
-
-	default void endBodyBlock(BlockBuilder blockBuilder) {
-		blockBuilder.addEndingIfNotPresent().endBlock();
 	}
 
 }

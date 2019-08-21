@@ -20,21 +20,24 @@ import org.springframework.cloud.contract.verifier.file.SingleContractMetadata;
 
 class WebTestClientRequestGiven implements Given, WebTestClientAcceptor {
 
-	private final BlockBuilder blockBuilder;
-
 	private final GeneratedClassMetaData generatedClassMetaData;
 
-	WebTestClientRequestGiven(BlockBuilder blockBuilder,
+	protected final MethodBodyWriter methodBodyWriter;
+
+	WebTestClientRequestGiven(MethodBodyWriter methodBodyWriter,
 			GeneratedClassMetaData metaData) {
-		this.blockBuilder = blockBuilder;
+		this.methodBodyWriter = methodBodyWriter;
 		this.generatedClassMetaData = metaData;
 	}
 
 	@Override
-	public MethodVisitor<Given> apply(SingleContractMetadata metadata,
-			SingleMethodBuilder methodBuilder) {
-		methodBuilder.variable("request", "WebTestClientRequestSpecification");
-		this.blockBuilder.appendWithSpace("= given()");
+	public MethodVisitor<Given> apply(SingleContractMetadata metadata) {
+		// @formatter:off
+		methodBodyWriter
+				.declareVariable("request", "WebTestClientRequestSpecification")
+				.assignValue()
+				.withMethodCall("given").closeCall();
+		// @formatter:on
 		return this;
 	}
 

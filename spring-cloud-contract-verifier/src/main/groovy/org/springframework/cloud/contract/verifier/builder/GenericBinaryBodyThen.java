@@ -21,33 +21,28 @@ import org.springframework.cloud.contract.verifier.file.SingleContractMetadata;
 
 class GenericBinaryBodyThen implements Then {
 
-	private final BlockBuilder blockBuilder;
-
 	private final BodyAssertionLineCreator bodyAssertionLineCreator;
+
+	protected final MethodBodyWriter methodBodyWriter;
 
 	private final BodyParser bodyParser;
 
-	GenericBinaryBodyThen(BlockBuilder blockBuilder, GeneratedClassMetaData metaData,
-			BodyParser bodyParser, ComparisonBuilder comparisonBuilder) {
-		this.blockBuilder = blockBuilder;
-		this.bodyAssertionLineCreator = new BodyAssertionLineCreator(blockBuilder,
-				metaData, bodyParser.byteArrayString(), comparisonBuilder);
+	GenericBinaryBodyThen(MethodBodyWriter methodBodyWriter,
+			GeneratedClassMetaData metaData, BodyParser bodyParser,
+			ComparisonBuilder comparisonBuilder) {
+		this.methodBodyWriter = methodBodyWriter;
+		this.bodyAssertionLineCreator = new BodyAssertionLineCreator(
+				methodBodyWriter.blockBuilder(), metaData, bodyParser.byteArrayString(),
+				comparisonBuilder);
 		this.bodyParser = bodyParser;
 	}
 
 	@Override
-	public MethodVisitor<Then> apply(SingleContractMetadata metadata,
-			SingleMethodBuilder methodBuilder) {
+	public MethodVisitor<Then> apply(SingleContractMetadata metadata) {
 		Object responseBody = this.bodyParser.responseBody(metadata).getServerValue();
-		byteResponseBodyCheck(metadata, (FromFileProperty) responseBody);
+		this.bodyAssertionLineCreator.appendBodyAssertionLine(metadata, "", responseBody);
+		methodBodyWriter.addEndingIfNotPresent();
 		return this;
-	}
-
-	private void byteResponseBodyCheck(SingleContractMetadata metadata,
-			FromFileProperty convertedResponseBody) {
-		this.bodyAssertionLineCreator.appendBodyAssertionLine(metadata, "",
-				convertedResponseBody);
-		this.blockBuilder.addEndingIfNotPresent();
 	}
 
 	@Override

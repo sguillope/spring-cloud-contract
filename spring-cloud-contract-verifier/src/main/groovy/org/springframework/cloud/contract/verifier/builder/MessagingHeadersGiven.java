@@ -23,27 +23,38 @@ import org.springframework.cloud.contract.verifier.util.MapConverter;
 
 class MessagingHeadersGiven implements Given, MethodVisitor<Given> {
 
-	private final BlockBuilder blockBuilder;
+	protected final MethodBodyWriter methodBodyWriter;
 
-	MessagingHeadersGiven(BlockBuilder blockBuilder) {
-		this.blockBuilder = blockBuilder;
+	MessagingHeadersGiven(MethodBodyWriter methodBodyWriter) {
+		this.methodBodyWriter = methodBodyWriter;
 	}
 
 	@Override
-	public MethodVisitor<Given> apply(SingleContractMetadata metadata,
-			SingleMethodBuilder methodBuilder) {
+	public MethodVisitor<Given> apply(SingleContractMetadata metadata) {
 		Input inputMessage = metadata.getContract().getInput();
-		this.blockBuilder.startBlock().addIndented(", headers()").startBlock();
-		inputMessage.getMessageHeaders().executeForEachHeader(header -> {
-			this.blockBuilder.addEmptyLine().addIndented(getHeaderString(header));
-		});
-		this.blockBuilder.endBlock();
+		methodBodyWriter.inBlock(() ->
+		// @formatter:off
+			methodBodyWriter.withIndentation()
+					.append(", ")
+					.withMethodCall("headers")
+					.closeCallAnd()
+					.inBlock(() ->
+							inputMessage.getMessageHeaders().executeForEachHeader(this::writeHeader)
+					)
+			// @formatter:on
+		);
 		return this;
 	}
 
-	private String getHeaderString(Header header) {
-		return ".header(" + getTestSideValue(header.getName()) + ", "
-				+ getTestSideValue(header.getServerValue()) + ")";
+	private void writeHeader(Header header) {
+		// @formatter:off
+		methodBodyWriter.addNewLine()
+				.withIndentation()
+				.continueWithNewMethodCall("header")
+					.withParameter(getTestSideValue(header.getName()))
+					.withParameter(getTestSideValue(header.getServerValue()))
+				.closeCall();
+		// @formatter:on
 	}
 
 	private String getTestSideValue(Object object) {

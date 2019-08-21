@@ -29,32 +29,38 @@ import org.springframework.cloud.contract.verifier.util.MapConverter;
 
 class JaxRsUrlPathWhen implements When, JaxRsAcceptor, QueryParamsResolver {
 
-	private final BlockBuilder blockBuilder;
+	private static final String QUERY_PARAM_METHOD = "queryParam";
 
 	private final GeneratedClassMetaData generatedClassMetaData;
 
-	JaxRsUrlPathWhen(BlockBuilder blockBuilder, GeneratedClassMetaData metaData) {
-		this.blockBuilder = blockBuilder;
+	protected final MethodBodyWriter methodBodyWriter;
+
+	JaxRsUrlPathWhen(MethodBodyWriter methodBodyWriter, GeneratedClassMetaData metaData) {
+		this.methodBodyWriter = methodBodyWriter;
 		this.generatedClassMetaData = metaData;
 	}
 
 	@Override
-	public MethodVisitor<When> apply(SingleContractMetadata metadata,
-			SingleMethodBuilder methodBuilder) {
-		appendUrlPathAndQueryParameters(metadata.getContract().getRequest());
+	public MethodVisitor<When> apply(SingleContractMetadata metadata) {
+		Request request = metadata.getContract().getRequest();
+		// @formatter:off
+		methodBodyWriter
+				.withIndentation().continueWithNewMethodCall("path")
+					.withParameter(urlFrom(request))
+				.closeCall();
+		// @formatter:on
+		appendQueryParametersForRequest(request);
 		return this;
 	}
 
-	private void appendUrlPathAndQueryParameters(Request request) {
+	private String urlFrom(Request request) {
 		if (request.getUrl() != null) {
-			this.blockBuilder.addIndented(".path(" + concreteUrl(request.getUrl()) + ")");
-			appendQueryParams(request.getUrl().getQueryParameters());
+			return concreteUrl(request.getUrl());
 		}
 		else if (request.getUrlPath() != null) {
-			this.blockBuilder
-					.addIndented(".path(" + concreteUrl(request.getUrlPath()) + ")");
-			appendQueryParams(request.getUrlPath().getQueryParameters());
+			return concreteUrl(request.getUrlPath());
 		}
+		throw new IllegalStateException("No URL specified for request");
 	}
 
 	private String concreteUrl(DslProperty url) {
@@ -65,22 +71,36 @@ class JaxRsUrlPathWhen implements When, JaxRsAcceptor, QueryParamsResolver {
 		return testSideUrl.toString();
 	}
 
-	private void appendQueryParams(QueryParameters queryParameters) {
+	private void appendQueryParametersForRequest(Request request) {
+		QueryParameters queryParameters = null;
+		if (request.getUrl() != null) {
+			queryParameters = request.getUrl().getQueryParameters();
+		}
+		else if (request.getUrlPath() != null) {
+			queryParameters = request.getUrlPath().getQueryParameters();
+		}
 		if (queryParameters == null || queryParameters.getParameters().isEmpty()) {
 			return;
 		}
-		this.blockBuilder.addEmptyLine();
+		appendQueryParameters(queryParameters);
+	}
+
+	private void appendQueryParameters(QueryParameters queryParameters) {
+		methodBodyWriter.addEmptyLine();
 		Iterator<QueryParameter> iterator = queryParameters.getParameters().stream()
 				.filter(this::allowedQueryParameter).iterator();
 		while (iterator.hasNext()) {
 			QueryParameter param = iterator.next();
-			String text = ".queryParam(\"" + param.getName() + "\", \""
-					+ resolveParamValue(param) + "\")";
+			// @formatter:off
+			methodBodyWriter
+					.withIndentation()
+					.continueWithNewMethodCall(QUERY_PARAM_METHOD)
+						.withParameter("\"" + param.getName() + "\"")
+						.withParameter("\"" + resolveParamValue(param) + "\"")
+					.closeCall();
+			// @formatter:on
 			if (iterator.hasNext()) {
-				this.blockBuilder.addLine(text);
-			}
-			else {
-				this.blockBuilder.addIndented(text);
+				methodBodyWriter.addEmptyLine();
 			}
 		}
 	}

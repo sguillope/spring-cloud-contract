@@ -21,39 +21,38 @@ import org.springframework.cloud.contract.verifier.file.SingleContractMetadata;
 
 class MockMvcAsyncWhen implements When, MockMvcAcceptor {
 
-	private final BlockBuilder blockBuilder;
-
 	private final GeneratedClassMetaData generatedClassMetaData;
 
-	MockMvcAsyncWhen(BlockBuilder blockBuilder,
+	protected final MethodBodyWriter methodBodyWriter;
+
+	MockMvcAsyncWhen(MethodBodyWriter methodBodyWriter,
 			GeneratedClassMetaData generatedClassMetaData) {
-		this.blockBuilder = blockBuilder;
+		this.methodBodyWriter = methodBodyWriter;
 		this.generatedClassMetaData = generatedClassMetaData;
 	}
 
 	@Override
-	public MethodVisitor<When> apply(SingleContractMetadata metadata,
-			SingleMethodBuilder methodBuilder) {
+	public MethodVisitor<When> apply(SingleContractMetadata metadata) {
 		Response response = metadata.getContract().getResponse();
 		if (response.getAsync()) {
-			if (KotlinClassMetaData.hasKotlinSupport()) {
-				this.blockBuilder.addIndented(".`when`()");
-			}
-			else {
-				this.blockBuilder.addIndented(".when()");
-			}
-			this.blockBuilder.append(".async()");
+			// @formatter:off
+			withWhenCall(methodBodyWriter).closeCallAnd()
+					.continueWithNewMethodCall("async").closeCall();
+			// @formatter:on
 		}
 		if (response.getDelay() != null) {
-			String delay = ".timeout(" + response.getDelay().getServerValue() + ")";
-			if (response.getAsync()) {
-				this.blockBuilder.append(delay);
+			if (!response.getAsync()) {
+				methodBodyWriter.withIndentation();
 			}
-			else {
-				this.blockBuilder.addIndented(delay);
-			}
+			methodBodyWriter.continueWithNewMethodCall("timeout")
+					.withParameter(response.getDelay().getServerValue().toString())
+					.closeCall();
 		}
 		return this;
+	}
+
+	protected MethodCallBuilder withWhenCall(MethodBodyWriter methodBodyWriter) {
+		return methodBodyWriter.withIndentation().continueWithNewMethodCall("when");
 	}
 
 	@Override

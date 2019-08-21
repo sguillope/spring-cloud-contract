@@ -20,16 +20,16 @@ import org.springframework.cloud.contract.verifier.file.SingleContractMetadata;
 
 class JaxRsRequestInvokerWhen implements When, JaxRsBodyParser {
 
-	private final BlockBuilder blockBuilder;
+	protected final MethodBodyWriter methodBodyWriter;
 
-	JaxRsRequestInvokerWhen(BlockBuilder blockBuilder) {
-		this.blockBuilder = blockBuilder;
+	JaxRsRequestInvokerWhen(MethodBodyWriter methodBodyWriter) {
+		this.methodBodyWriter = methodBodyWriter;
 	}
 
 	@Override
-	public MethodVisitor<When> apply(SingleContractMetadata metadata,
-			SingleMethodBuilder methodBuilder) {
-		this.blockBuilder.addIndented(".invoke()").addEndingIfNotPresent();
+	public MethodVisitor<When> apply(SingleContractMetadata metadata) {
+		methodBodyWriter.withIndentation().continueWithNewMethodCall("invoke")
+				.closeCallAndEndStatement();
 		return this;
 	}
 

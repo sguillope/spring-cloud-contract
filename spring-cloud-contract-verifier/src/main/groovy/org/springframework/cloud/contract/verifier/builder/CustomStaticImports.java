@@ -28,7 +28,7 @@ class CustomStaticImports implements StaticImports {
 	}
 
 	@Override
-	public List<String> fqns() {
+	public List<String> fullyQualifiedDomainNames() {
 		return Arrays
 				.asList(this.generatedClassMetaData.configProperties.getStaticImports());
 	}

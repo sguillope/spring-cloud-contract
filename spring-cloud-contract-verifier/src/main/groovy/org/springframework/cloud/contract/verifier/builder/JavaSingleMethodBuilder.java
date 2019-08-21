@@ -44,6 +44,8 @@ class JavaSingleMethodBuilder implements SingleMethodBuilder {
 
 	private List<Then> thens = new LinkedList<>();
 
+	private final MethodBodyWriter methodBodyWriter;
+
 	final GeneratedClassMetaData generatedClassMetaData;
 
 	final BlockBuilder blockBuilder;
@@ -52,6 +54,7 @@ class JavaSingleMethodBuilder implements SingleMethodBuilder {
 			GeneratedClassMetaData generatedClassMetaData) {
 		this.blockBuilder = blockBuilder;
 		this.generatedClassMetaData = generatedClassMetaData;
+		this.methodBodyWriter = new JavaMethodBodyWriter(blockBuilder);
 	}
 
 	public static JavaSingleMethodBuilder builder(BlockBuilder blockBuilder,
@@ -84,12 +87,12 @@ class JavaSingleMethodBuilder implements SingleMethodBuilder {
 	}
 
 	public JavaSingleMethodBuilder restAssured() {
-		return given(new RestAssuredGiven(this.blockBuilder, this.generatedClassMetaData,
-				RestAssuredBodyParser.INSTANCE))
-						.when(new RestAssuredWhen(this.blockBuilder,
+		return given(new RestAssuredGiven(this.methodBodyWriter,
+				this.generatedClassMetaData, RestAssuredBodyParser.INSTANCE))
+						.when(new RestAssuredWhen(this.methodBodyWriter,
 								this.generatedClassMetaData,
 								RestAssuredBodyParser.INSTANCE))
-						.then(new RestAssuredThen(this.blockBuilder,
+						.then(new RestAssuredThen(this.methodBodyWriter,
 								this.generatedClassMetaData,
 								RestAssuredBodyParser.INSTANCE,
 								ComparisonBuilder.JAVA_HTTP_INSTANCE));
@@ -97,17 +100,17 @@ class JavaSingleMethodBuilder implements SingleMethodBuilder {
 
 	public JavaSingleMethodBuilder jaxRs() {
 		return given(new JaxRsGiven(this.generatedClassMetaData))
-				.when(new JaxRsWhen(this.blockBuilder, this.generatedClassMetaData,
+				.when(new JaxRsWhen(this.methodBodyWriter, this.generatedClassMetaData,
 						JaxRsBodyParser.INSTANCE))
-				.then(new JaxRsThen(this.blockBuilder, this.generatedClassMetaData,
+				.then(new JaxRsThen(this.methodBodyWriter, this.generatedClassMetaData,
 						JaxRsBodyParser.INSTANCE, ComparisonBuilder.JAVA_HTTP_INSTANCE));
 	}
 
 	public JavaSingleMethodBuilder messaging() {
 		// @formatter:off
-		return given(new MessagingGiven(this.blockBuilder, this.generatedClassMetaData, JavaMessagingBodyParser.INSTANCE))
-				.when(new MessagingWhen(this.blockBuilder))
-				.then(new MessagingWithBodyThen(this.blockBuilder,
+		return given(new MessagingGiven(this.methodBodyWriter, this.generatedClassMetaData, JavaMessagingBodyParser.INSTANCE))
+				.when(new MessagingWhen(this.methodBodyWriter))
+				.then(new MessagingWithBodyThen(this.methodBodyWriter,
 						this.generatedClassMetaData, ComparisonBuilder.JAVA_MESSAGING_INSTANCE));
 		// @formatter:on
 	}
@@ -128,7 +131,7 @@ class JavaSingleMethodBuilder implements SingleMethodBuilder {
 	}
 
 	@Override
-	public BlockBuilder getBlockBuilder() {
+	public BlockBuilder blockBuilder() {
 		return this.blockBuilder;
 	}
 
@@ -164,7 +167,6 @@ class JavaSingleMethodBuilder implements SingleMethodBuilder {
 				}
 				// (indent) when
 				visit(this.whens, metaData);
-				this.blockBuilder.addEmptyLine();
 				// (indent) then
 				visit(this.thens, metaData);
 			});
@@ -173,12 +175,6 @@ class JavaSingleMethodBuilder implements SingleMethodBuilder {
 		});
 		// @formatter:on
 		return this.blockBuilder;
-	}
-
-	@Override
-	public SingleMethodBuilder variable(String name, String className) {
-		this.blockBuilder.addIndented(className).appendWithSpace(name);
-		return this;
 	}
 
 	private MethodMetadata pickMetadatum() {
@@ -199,7 +195,7 @@ class JavaSingleMethodBuilder implements SingleMethodBuilder {
 		Iterator<? extends MethodVisitor> iterator = visitors.iterator();
 		while (iterator.hasNext()) {
 			MethodVisitor visitor = iterator.next();
-			visitor.apply(metaData, this);
+			visitor.apply(metaData);
 			if (addLineEnding) {
 				this.blockBuilder.addEndingIfNotPresent();
 			}

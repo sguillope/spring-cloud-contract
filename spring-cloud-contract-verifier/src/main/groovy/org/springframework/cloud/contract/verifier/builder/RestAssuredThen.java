@@ -25,31 +25,36 @@ import org.springframework.cloud.contract.verifier.file.SingleContractMetadata;
 
 class RestAssuredThen implements Then, BodyMethodVisitor {
 
-	private final BlockBuilder blockBuilder;
-
 	private final GeneratedClassMetaData generatedClassMetaData;
 
 	private final List<Then> thens = new LinkedList<>();
 
-	RestAssuredThen(BlockBuilder blockBuilder,
+	protected final MethodBodyWriter methodBodyWriter;
+
+	RestAssuredThen(MethodBodyWriter methodBodyWriter,
 			GeneratedClassMetaData generatedClassMetaData, BodyParser bodyParser,
 			ComparisonBuilder comparisonBuilder) {
-		this.blockBuilder = blockBuilder;
+		this.methodBodyWriter = methodBodyWriter;
 		this.generatedClassMetaData = generatedClassMetaData;
 		this.thens.addAll(Arrays.asList(
-				new RestAssuredStatusCodeThen(this.blockBuilder, comparisonBuilder),
-				new RestAssuredHeadersThen(this.blockBuilder, comparisonBuilder),
-				new RestAssuredCookiesThen(this.blockBuilder, comparisonBuilder),
-				new GenericHttpBodyThen(this.blockBuilder, generatedClassMetaData,
+				new RestAssuredStatusCodeThen(methodBodyWriter, comparisonBuilder),
+				new RestAssuredHeadersThen(methodBodyWriter, comparisonBuilder),
+				new RestAssuredCookiesThen(methodBodyWriter, comparisonBuilder),
+				new GenericHttpBodyThen(methodBodyWriter, generatedClassMetaData,
 						bodyParser, comparisonBuilder)));
 	}
 
 	@Override
-	public MethodVisitor<Then> apply(SingleContractMetadata singleContractMetadata,
-			SingleMethodBuilder methodBuilder) {
-		startBodyBlock(this.blockBuilder, "then:");
-		bodyBlock(this.blockBuilder, this.thens, singleContractMetadata, methodBuilder);
+	public MethodVisitor<Then> apply(SingleContractMetadata singleContractMetadata) {
+		methodBodyWriter.addEmptyLine().inThenBlock(
+				() -> bodyBlock(methodBodyWriter, this.thens, singleContractMetadata));
 		return this;
+	}
+
+	@Override
+	public void applyVisitorsWithEnding(MethodBodyWriter methodBodyWriter,
+			SingleContractMetadata singleContractMetadata, List<MethodVisitor> visitors) {
+		visitors.forEach(visitor -> visitor.apply(singleContractMetadata));
 	}
 
 	@Override

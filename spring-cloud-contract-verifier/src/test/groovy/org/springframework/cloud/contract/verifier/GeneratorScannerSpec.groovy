@@ -21,7 +21,7 @@ import spock.lang.Specification
 import org.springframework.cloud.contract.verifier.builder.SingleTestGenerator
 import org.springframework.cloud.contract.verifier.config.ContractVerifierConfigProperties
 
-import static org.springframework.cloud.contract.verifier.builder.GeneratedTestClassMother.generatedTestClass
+import static org.springframework.cloud.contract.verifier.builder.GeneratedTestClassProvider.generatedTestClass
 import static org.springframework.cloud.contract.verifier.config.TestFramework.SPOCK
 
 class GeneratorScannerSpec extends Specification {

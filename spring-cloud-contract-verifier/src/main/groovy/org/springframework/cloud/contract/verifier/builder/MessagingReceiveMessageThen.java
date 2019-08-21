@@ -22,28 +22,30 @@ import org.springframework.cloud.contract.verifier.file.SingleContractMetadata;
 
 class MessagingReceiveMessageThen implements Then, BodyMethodVisitor {
 
-	private final BlockBuilder blockBuilder;
-
 	private final ComparisonBuilder comparisonBuilder;
 
-	MessagingReceiveMessageThen(BlockBuilder blockBuilder,
+	protected final MethodBodyWriter methodBodyWriter;
+
+	MessagingReceiveMessageThen(MethodBodyWriter methodBodyWriter,
 			ComparisonBuilder comparisonBuilder) {
-		this.blockBuilder = blockBuilder;
+		this.methodBodyWriter = methodBodyWriter;
 		this.comparisonBuilder = comparisonBuilder;
 	}
 
 	@Override
-	public MethodVisitor<Then> apply(SingleContractMetadata singleContractMetadata,
-			SingleMethodBuilder methodBuilder) {
+	public MethodVisitor<Then> apply(SingleContractMetadata singleContractMetadata) {
 		OutputMessage outputMessage = singleContractMetadata.getContract()
 				.getOutputMessage();
-		methodBuilder.variable("response", "ContractVerifierMessage");
-		this.blockBuilder
-				.appendWithSpace("= contractVerifierMessaging.receive("
-						+ sentToValue(outputMessage.getSentTo().getServerValue()) + ")")
-				.addEndingIfNotPresent().addEmptyLine();
-		this.blockBuilder.addLineWithEnding(
-				this.comparisonBuilder.assertThatIsNotNull("response"));
+		// @formatter:off
+		methodBodyWriter
+				.declareVariable("response", "ContractVerifierMessage")
+				.assignValue()
+				.usingVariable("contractVerifierMessaging")
+				.callMethod("receive")
+					.withParameter(sentToValue(outputMessage.getSentTo().getServerValue()))
+				.closeCallAndEndStatement();
+		// @formatter:on
+		methodBodyWriter.addLine(comparisonBuilder.assertThatIsNotNull("response"));
 		return this;
 	}
 

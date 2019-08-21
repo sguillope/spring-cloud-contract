@@ -20,18 +20,20 @@ import org.springframework.cloud.contract.verifier.file.SingleContractMetadata;
 
 class SpockMessagingEmptyThen implements Then, BodyMethodVisitor {
 
-	private final BlockBuilder blockBuilder;
+	protected final MethodBodyWriter methodBodyWriter;
 
-	SpockMessagingEmptyThen(BlockBuilder blockBuilder, GeneratedClassMetaData metaData) {
-		this.blockBuilder = blockBuilder;
+	SpockMessagingEmptyThen(MethodBodyWriter methodBodyWriter) {
+		this.methodBodyWriter = methodBodyWriter;
 	}
 
 	@Override
-	public MethodVisitor<Then> apply(SingleContractMetadata metadata,
-			SingleMethodBuilder methodBuilder) {
-		startBodyBlock(this.blockBuilder, "then:");
-		this.blockBuilder.addLineWithEnding("noExceptionThrown()");
-		endBodyBlock(this.blockBuilder);
+	public MethodVisitor<Then> apply(SingleContractMetadata metadata) {
+		// @formatter:off
+		methodBodyWriter.addEmptyLine()
+			.inThenBlock(() ->
+			methodBodyWriter.addLine("noExceptionThrown()")
+		);
+		// @formatter:on
 		return this;
 	}
 

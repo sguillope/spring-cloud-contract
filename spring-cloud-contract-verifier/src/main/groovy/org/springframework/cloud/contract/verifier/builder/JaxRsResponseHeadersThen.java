@@ -28,24 +28,18 @@ import org.springframework.cloud.contract.verifier.util.MapConverter;
 
 class JaxRsResponseHeadersThen implements Then {
 
-	private final BlockBuilder blockBuilder;
-
 	private final ComparisonBuilder comparisonBuilder;
 
-	JaxRsResponseHeadersThen(BlockBuilder blockBuilder,
+	protected final MethodBodyWriter methodBodyWriter;
+
+	JaxRsResponseHeadersThen(MethodBodyWriter methodBodyWriter,
 			ComparisonBuilder comparisonBuilder) {
-		this.blockBuilder = blockBuilder;
+		this.methodBodyWriter = methodBodyWriter;
 		this.comparisonBuilder = comparisonBuilder;
 	}
 
 	@Override
-	public MethodVisitor<Then> apply(SingleContractMetadata metadata,
-			SingleMethodBuilder methodBuilder) {
-		validateResponseHeadersBlock(metadata);
-		return this;
-	}
-
-	private void validateResponseHeadersBlock(SingleContractMetadata metadata) {
+	public MethodVisitor<Then> apply(SingleContractMetadata metadata) {
 		Response response = metadata.getContract().getResponse();
 		Headers headers = response.getHeaders();
 		Iterator<Header> iterator = headers.getEntries().iterator();
@@ -56,12 +50,13 @@ class JaxRsResponseHeadersThen implements Then {
 							? header.getServerValue()
 							: MapConverter.getTestSideValues(header.getServerValue()));
 			if (iterator.hasNext()) {
-				this.blockBuilder.addLineWithEnding(text);
+				methodBodyWriter.addLine(text);
 			}
 			else {
-				this.blockBuilder.addIndented(text);
+				methodBodyWriter.withIndentation().append(text);
 			}
 		}
+		return this;
 	}
 
 	private String processHeaderElement(String property, Object value) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2019-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,15 @@
  * limitations under the License.
  */
 
-package test;
+package org.springframework.cloud.contract.verifier.builder;
 
-import java.util.function.Supplier;
+/**
+ * @author Tim Ysewyn
+ */
+interface WithVariableBuilder {
 
-import org.springframework.cloud.contract.spec.Contract;
+	MethodCallBuilder callMethod(String methodName);
 
-class MyHttpContract implements Supplier<Contract> {
-	@Override
-	public Contract get() {
-		return Contract.make(c -> {
-			c.request(r -> {
-				r.method(r.GET());
-				r.url("/example");
-			});
-			c.response(r -> {
-				r.status(r.OK());
-			});
-		});
-	}
+	MethodBodyWriter and();
+
 }

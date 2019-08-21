@@ -17,48 +17,15 @@
 package org.springframework.cloud.contract.verifier.builder;
 
 import org.springframework.cloud.contract.verifier.config.TestFramework;
-import org.springframework.core.KotlinDetector;
-import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
+
+import static org.springframework.cloud.contract.verifier.util.KotlinPluginsAvailabilityChecker.hasKotlinSupport;
 
 /**
  * @author Tim Ysewyn
  * @since 2.2.0
  */
 class KotlinClassMetaData implements ClassMetaData, DefaultClassMetadata {
-
-	private static boolean kotlinSupportMaven = false;
-
-	private static boolean kotlinSupportGradle = false;
-
-	static {
-		ClassLoader classLoader = KotlinClassMetaData.class.getClassLoader();
-		try {
-			ClassUtils.forName(
-					"org.springframework.cloud.contract.maven.verifier.GenerateTestsMojo",
-					classLoader);
-			kotlinSupportMaven = KotlinDetector.isKotlinPresent();
-		}
-		catch (ClassNotFoundException ex) {
-		}
-		try {
-			ClassUtils.forName(
-					"org.springframework.cloud.contract.verifier.plugin.GenerateServerTestsTask",
-					classLoader);
-			// We need to be sure that the kotlin-gradle-plugin is present
-			// KotlinDetector.isKotlinPresent() can't be used with Gradle
-			// since it uses a different classpath during compilation/testing
-			ClassUtils.forName("org.jetbrains.kotlin.gradle.tasks.KotlinCompile",
-					classLoader);
-			kotlinSupportGradle = true;
-		}
-		catch (ClassNotFoundException ex) {
-		}
-	}
-
-	public static boolean hasKotlinSupport() {
-		return kotlinSupportMaven || kotlinSupportGradle;
-	}
 
 	private final BlockBuilder blockBuilder;
 

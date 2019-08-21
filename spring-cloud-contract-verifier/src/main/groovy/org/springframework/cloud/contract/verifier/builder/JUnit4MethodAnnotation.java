@@ -43,8 +43,7 @@ class JUnit4MethodAnnotation implements MethodAnnotations {
 
 	@Override
 	public MethodVisitor<MethodAnnotations> apply(
-			SingleContractMetadata singleContractMetadata,
-			SingleMethodBuilder methodBuilder) {
+			SingleContractMetadata singleContractMetadata) {
 		Arrays.stream(ANNOTATIONS).forEach(this.blockBuilder::addIndented);
 		return this;
 	}

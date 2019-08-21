@@ -26,33 +26,33 @@ import org.springframework.cloud.contract.verifier.util.MapConverter;
 
 class MessagingHeadersThen implements Then, BodyMethodVisitor {
 
-	private final BlockBuilder blockBuilder;
-
 	private final ComparisonBuilder comparisonBuilder;
 
-	MessagingHeadersThen(BlockBuilder blockBuilder, ComparisonBuilder comparisonBuilder) {
-		this.blockBuilder = blockBuilder;
+	protected final MethodBodyWriter methodBodyWriter;
+
+	MessagingHeadersThen(MethodBodyWriter methodBodyWriter,
+			ComparisonBuilder comparisonBuilder) {
+		this.methodBodyWriter = methodBodyWriter;
 		this.comparisonBuilder = comparisonBuilder;
 	}
 
 	@Override
-	public MethodVisitor<Then> apply(SingleContractMetadata singleContractMetadata,
-			SingleMethodBuilder methodBuilder) {
-		endBodyBlock(this.blockBuilder);
-		startBodyBlock(this.blockBuilder, "and:");
-		OutputMessage outputMessage = singleContractMetadata.getContract()
-				.getOutputMessage();
-		outputMessage.getHeaders().executeForEachHeader(header -> {
-			processHeaderElement(header.getName(),
-					header.getServerValue() instanceof NotToEscapePattern
-							? header.getServerValue()
-							: MapConverter.getTestSideValues(header.getServerValue()));
+	public MethodVisitor<Then> apply(SingleContractMetadata singleContractMetadata) {
+		methodBodyWriter.inAndBlock(() -> {
+			OutputMessage outputMessage = singleContractMetadata.getContract()
+					.getOutputMessage();
+			outputMessage.getHeaders().executeForEachHeader(header -> {
+				processHeaderElement(header.getName(),
+						header.getServerValue() instanceof NotToEscapePattern
+								? header.getServerValue() : MapConverter
+										.getTestSideValues(header.getServerValue()));
+			});
 		});
 		return this;
 	}
 
 	private void appendLineWithHeaderNotNull(String property) {
-		this.blockBuilder.addLineWithEnding(this.comparisonBuilder
+		methodBodyWriter.addLine(this.comparisonBuilder
 				.assertThatIsNotNull("response.getHeader(\"" + property + "\")"));
 	}
 
@@ -73,25 +73,25 @@ class MessagingHeadersThen implements Then, BodyMethodVisitor {
 
 	private void processHeaderElement(String property, String value) {
 		appendLineWithHeaderNotNull(property);
-		this.blockBuilder.addLineWithEnding(this.comparisonBuilder.assertThat(
+		methodBodyWriter.addLine(this.comparisonBuilder.assertThat(
 				"response.getHeader(\"" + property + "\").toString()", value));
 	}
 
 	private void processHeaderElement(String property, Number value) {
 		appendLineWithHeaderNotNull(property);
-		blockBuilder.addLineWithEnding(this.comparisonBuilder
+		methodBodyWriter.addLine(this.comparisonBuilder
 				.assertThat("response.getHeader(\"" + property + "\")", value));
 	}
 
 	private void processHeaderElement(String property, Pattern pattern) {
 		appendLineWithHeaderNotNull(property);
-		blockBuilder.addLineWithEnding(this.comparisonBuilder.assertThat(
+		methodBodyWriter.addLine(this.comparisonBuilder.assertThat(
 				"response.getHeader(\"" + property + "\").toString()", pattern));
 	}
 
 	private void processHeaderElement(String property, ExecutionProperty exec) {
 		appendLineWithHeaderNotNull(property);
-		blockBuilder.addLineWithEnding(
+		methodBodyWriter.addLine(
 				exec.insertValue("response.getHeader(\"" + property + "\").toString()"));
 	}
 

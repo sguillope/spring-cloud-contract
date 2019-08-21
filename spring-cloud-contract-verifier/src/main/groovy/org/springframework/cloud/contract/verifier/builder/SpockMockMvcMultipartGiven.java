@@ -16,69 +16,35 @@
 
 package org.springframework.cloud.contract.verifier.builder;
 
-import java.util.Map;
-
+import org.springframework.cloud.contract.spec.internal.FromFileProperty;
 import org.springframework.cloud.contract.spec.internal.NamedProperty;
 import org.springframework.cloud.contract.spec.internal.Request;
 import org.springframework.cloud.contract.verifier.config.TestFramework;
 import org.springframework.cloud.contract.verifier.file.SingleContractMetadata;
-import org.springframework.cloud.contract.verifier.util.ContentUtils;
-import org.springframework.cloud.contract.verifier.util.MapConverter;
 
-class SpockMockMvcMultipartGiven implements Given {
+import static org.springframework.cloud.contract.verifier.util.ContentUtils.groovyNamedPropertyValue;
 
-	private final BlockBuilder blockBuilder;
+class SpockMockMvcMultipartGiven extends MockMvcMultipartGiven {
 
-	private final GeneratedClassMetaData generatedClassMetaData;
-
-	private final BodyReader bodyReader;
-
-	private final BodyParser bodyParser;
-
-	SpockMockMvcMultipartGiven(BlockBuilder blockBuilder,
+	SpockMockMvcMultipartGiven(MethodBodyWriter methodBodyWriter,
 			GeneratedClassMetaData generatedClassMetaData, BodyParser bodyParser) {
-		this.blockBuilder = blockBuilder;
-		this.bodyReader = new BodyReader(generatedClassMetaData);
-		this.bodyParser = bodyParser;
-		this.generatedClassMetaData = generatedClassMetaData;
+		super(methodBodyWriter, generatedClassMetaData, bodyParser);
 	}
 
 	@Override
-	public MethodVisitor<Given> apply(SingleContractMetadata metadata,
-			SingleMethodBuilder methodBuilder) {
-		getMultipartParameters(metadata).entrySet().forEach(entry -> this.blockBuilder
-				.addLine(getMultipartParameterLine(metadata, entry)));
-		return this;
+	protected String quote() {
+		return "'";
 	}
 
-	private String getMultipartParameterLine(SingleContractMetadata metadata,
-			Map.Entry<String, Object> parameter) {
-		if (parameter.getValue() instanceof NamedProperty) {
-			return ".multiPart(" + getMultipartFileParameterContent(metadata,
-					parameter.getKey(), (NamedProperty) parameter.getValue()) + ")";
-		}
-		return getParameterString(parameter);
+	protected String parameterName(String parameterName) {
+		return quote() + parameterName + quote();
 	}
 
-	@SuppressWarnings("unchecked")
-	private Map<String, Object> getMultipartParameters(SingleContractMetadata metadata) {
-		return (Map<String, Object>) metadata.getContract().getRequest().getMultipart()
-				.getServerValue();
-	}
-
-	private String getMultipartFileParameterContent(SingleContractMetadata metadata,
-			String propertyName, NamedProperty propertyValue) {
-		return ContentUtils.getGroovyMultipartFileParameterContent(propertyName,
-				propertyValue,
-				fileProp -> this.bodyReader.readBytesFromFileString(metadata, fileProp,
-						CommunicationType.REQUEST));
-	}
-
-	private String getParameterString(Map.Entry<String, Object> parameter) {
-		return ".param(" + this.bodyParser.quotedShortText(parameter.getKey()) + ", "
-				+ this.bodyParser.quotedShortText(
-						MapConverter.getTestSideValuesForNonBody(parameter.getValue()))
-				+ ")";
+	protected String multipartContent(NamedProperty namedProperty,
+			SingleContractMetadata metadata) {
+		return groovyNamedPropertyValue(namedProperty, quote(),
+				(FromFileProperty property) -> bodyReader().readBytesFromFileString(
+						metadata, property, CommunicationType.REQUEST));
 	}
 
 	@Override

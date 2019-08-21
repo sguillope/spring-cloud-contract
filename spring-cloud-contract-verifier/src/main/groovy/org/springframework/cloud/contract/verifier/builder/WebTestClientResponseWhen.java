@@ -20,21 +20,27 @@ import org.springframework.cloud.contract.verifier.file.SingleContractMetadata;
 
 class WebTestClientResponseWhen implements When, WebTestClientAcceptor {
 
-	private final BlockBuilder blockBuilder;
-
 	private final GeneratedClassMetaData generatedClassMetaData;
 
-	WebTestClientResponseWhen(BlockBuilder blockBuilder,
+	protected final MethodBodyWriter methodBodyWriter;
+
+	WebTestClientResponseWhen(MethodBodyWriter methodBodyWriter,
 			GeneratedClassMetaData metaData) {
-		this.blockBuilder = blockBuilder;
+		this.methodBodyWriter = methodBodyWriter;
 		this.generatedClassMetaData = metaData;
 	}
 
 	@Override
-	public MethodVisitor<When> apply(SingleContractMetadata metadata,
-			SingleMethodBuilder methodBuilder) {
-		methodBuilder.variable("response", "WebTestClientResponse");
-		this.blockBuilder.appendWithSpace("= given().spec(request)");
+	public MethodVisitor<When> apply(SingleContractMetadata metadata) {
+		// @formatter:off
+		methodBodyWriter
+				.declareVariable("response", "WebTestClientResponse")
+				.assignValue()
+				.withMethodCall("given").closeCallAnd()
+				.continueWithNewMethodCall("spec")
+					.withParameter("request")
+				.closeCall();
+		// @formatter:on
 		return this;
 	}
 
